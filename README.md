@@ -31,7 +31,7 @@
 <br />
 <div align="center">
   <a href="https://github.com/bransoned/Memory-Exporter">
-    <img src="images/memory_exporter_logo.jpg" alt="Logo" width="80" height="80">
+    <img src="images/memory_exporter_logo.jpg" alt="Logo" width="128" height="128">
   </a>
 
 <h3 align="center">Memory Exporter</h3>
