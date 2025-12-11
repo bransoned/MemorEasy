@@ -37,13 +37,13 @@
 <h3 align="center">Memory Exporter</h3>
 
   <p align="center">
-    Python tool used to download Snapchat memory exports. This script allows you to extract and apply date, time, and location data to Snapchat memory exports EXIF
+    Python tool used to download Snapchat memory exports. This script allows you to extract and apply date, time, and location data to Snapchat memory exports EXIF data.
     <br />
     <a href="https://github.com/bransoned/Memory-Exporter"><strong>Explore the docs »</strong></a>
     <br />
     <br />
-    <a href="https://github.com/bransoned/Memory-Exporter">View Demo</a>
-    &middot;
+<!--    <a href="https://github.com/bransoned/Memory-Exporter">View Demo</a>
+    &middot; -->
     <a href="https://github.com/bransoned/Memory-Exporter/issues/new?labels=bug&template=bug-report---.md">Report Bug</a>
     &middot;
     <a href="https://github.com/bransoned/Memory-Exporter/issues/new?labels=enhancement&template=feature-request---.md">Request Feature</a>
@@ -85,14 +85,16 @@
 
 [![Product Name Screen Shot][product-screenshot]](https://example.com)
 
-TODO Add about the project section.
+This project is intended to provide a simplified and better implemented approach for exporting Snapchat memories compared to the system provided by Snapchat and their Javascript implementation.
+
+When using Memory Exporter, you can rapidly download your Memories, while also tagging them with their relevant EXIF data, which Snapchat does not provide. Likewise, the script also saves files with relevant date/time file names instead of SID values.
 <p align="right">(<a href="#readme-top">back to top</a>)</p>
 
 
 
+<!--
 ### Built With
 TODO Add built with images
-<!--
 * [![Next][Next.js]][Next-url]
 * [![React][React.js]][React-url]
 * [![Vue][Vue.js]][Vue-url]
@@ -100,55 +102,64 @@ TODO Add built with images
 * [![Svelte][Svelte.dev]][Svelte-url]
 * [![Laravel][Laravel.com]][Laravel-url]
 * [![Bootstrap][Bootstrap.com]][Bootstrap-url]
-* [![JQuery][JQuery.com]][JQuery-url] -->
+* [![JQuery][JQuery.com]][JQuery-url]
 
 <p align="right">(<a href="#readme-top">back to top</a>)</p>
-
+-->
 
 
 <!-- GETTING STARTED -->
 ## Getting Started
 
-This is an example of how you may give instructions on setting up your project locally.
-To get a local copy up and running follow these simple example steps.
+Below are steps needed to retrieve your Memories_history.html file from Snapchat and then how to install and use this file with Memory Exporter.
 
 ### Prerequisites
 
-This is an example of how to list things you need to use the software and how to install them.
+<!--This is an example of how to list things you need to use the software and how to install them.
 * npm
   ```sh
   npm install npm@latest -g
   ```
+-->
+
+1. [Download your Memories data from Snapchat.](https://help.snapchat.com/hc/en-us/articles/7012305371156-How-do-I-download-my-data-from-Snapchat)
+    - When asked which data you would like, only selecting Memories is required for this project, but you may select more data if you wish.
+    - Ensure that your data range you want selected is correct. We recommend toggle date selection off to query all Memories on your account.
+    - **Note**: This will not export your My Eyes Only folder. This must be done manually in the app.
+    - Lastly, when delivered the zip file from Snapchat with your data, unzip and find the "memories_history.html" file. We will use this file in the script.
+    - TODO Add images or a GIF showing process of selecting data.
+2. Confirm that [Python](https://www.python.org/downloads/) is installed on your system.
 
 ### Installation
 
-1. Get a free API Key at [https://example.com](https://example.com)
-2. Clone the repo
+1. Clone and enter the repo
    ```sh
    git clone https://github.com/bransoned/Memory-Exporter.git
+   cd Memory-Exporter
    ```
-3. Install NPM packages
-   ```sh
-   npm install
-   ```
-4. Enter your API in `config.js`
-   ```js
-   const API_KEY = 'ENTER YOUR API';
-   ```
-5. Change git remote url to avoid accidental pushes to base project
-   ```sh
-   git remote set-url origin bransoned/Memory-Exporter
-   git remote -v # confirm the changes
-   ```
-
+2. Create and source a virtual environment (skip this step if you already have a virtual environment you would like to use)
+    ```sh
+    python3 -m venv .venv
+    source .venv/bin/activate
+    ```
+3. Install the required libraries
+    ```sh
+    pip3 install -r requirements.txt
+    ```
+4. Copy your "memories_history.html" file into the top level of the project directory
 <p align="right">(<a href="#readme-top">back to top</a>)</p>
 
-
+### Running the Script
+1. Once the required libraries and user-specific memory file are installed and copied into the directory, you can run the script
+    ```sh
+    python3 script.py
+    ```
+    - The script will give output tracking the progress of the downloads. If exporting many memories, this may take some time.
 
 <!-- USAGE EXAMPLES -->
 ## Usage
 
-Use this space to show useful examples of how a project can be used. Additional screenshots, code examples and demos work well in this space. You may also link to more resources.
+TODO: Use this space to show useful examples of how a project can be used. Additional screenshots, code examples and demos work well in this space. You may also link to more resources.
 
 _For more examples, please refer to the [Documentation](https://example.com)_
 
@@ -159,10 +170,11 @@ _For more examples, please refer to the [Documentation](https://example.com)_
 <!-- ROADMAP -->
 ## Roadmap
 
-- [ ] Feature 1
-- [ ] Feature 2
-- [ ] Feature 3
-    - [ ] Nested Feature
+- [ ] Edit EXIF data for JPGs and MP4 files.
+- [ ] Edit EXIF data for JPGs or MP4s that are downloaded in a ZIP file.
+- [ ] Remove ZIP files and combine their PNG layers with the parent PNG or MP4. Add relevant EXIF data when needed.
+- [ ] Provide a GUI interface for ease of use by non-power users.
+- [ ] Develop a package/executable for ease of portability to non-power users.
 
 See the [open issues](https://github.com/bransoned/Memory-Exporter/issues) for a full list of proposed features (and known issues).
 
@@ -184,6 +196,8 @@ Don't forget to give the project a star! Thanks again!
 4. Push to the Branch (`git push origin feature/AmazingFeature`)
 5. Open a Pull Request
 
+If you do not feel comfortable contributing code to the project, you can also leave feedback in the Issues or Discussion sections.
+
 <p align="right">(<a href="#readme-top">back to top</a>)</p>
 
 ### Top contributors:
@@ -197,7 +211,7 @@ Don't forget to give the project a star! Thanks again!
 <!-- LICENSE -->
 ## License
 
-Distributed under the project_license. See `LICENSE.txt` for more information.
+Distributed under the AGPL-3.0 license. See `LICENSE.txt` for more information.
 
 <p align="right">(<a href="#readme-top">back to top</a>)</p>
 
@@ -206,7 +220,7 @@ Distributed under the project_license. See `LICENSE.txt` for more information.
 <!-- CONTACT -->
 ## Contact
 
-Your Name - [@twitter_handle](https://twitter.com/twitter_handle) - email@email_client.com
+Bransoned - [Discord](https://discord.com/users/b.ranson)
 
 Project Link: [https://github.com/bransoned/Memory-Exporter](https://github.com/bransoned/Memory-Exporter)
 
@@ -217,9 +231,7 @@ Project Link: [https://github.com/bransoned/Memory-Exporter](https://github.com/
 <!-- ACKNOWLEDGMENTS -->
 ## Acknowledgments
 
-* []()
-* []()
-* []()
+* [] This is a personal project intended for my use-cases. I feel that others may be able to benefit from this tool, so I would like to share it along with the development process with others.
 
 <p align="right">(<a href="#readme-top">back to top</a>)</p>
 
