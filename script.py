@@ -20,7 +20,7 @@ Also, need to clean up, compartmentalize, and space out this code into functions
 # Logic to parse user-provided html file for user-specific image info
 def parse_html():
     target_string = "<div id='mem-info-bar'"
-    with open("memories_history.html", "r") as file:
+    with open("memories_history.html", "r", encoding="utf-8") as file:
         for line in file:
             if target_string in line:
                 html_text = line
