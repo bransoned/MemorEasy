@@ -82,7 +82,7 @@
 <!-- ABOUT THE PROJECT -->
 ## About The Project
 
-[![Product Name Screen Shot][product-screenshot]](https://example.com)
+<!--[![Product Name Screen Shot][product-screenshot]](https://example.com)-->
 
 This project is intended to provide a simplified and better implemented approach for exporting Snapchat memories compared to the system provided by Snapchat and their Javascript implementation.
 
