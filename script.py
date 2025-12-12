@@ -8,6 +8,7 @@ from PIL import Image
 import os
 from datetime import datetime
 import time
+import subprocess
 
 """
 TODO Need to take data from downloads and begin writing the relevant exif data next...
@@ -119,7 +120,6 @@ def jpg_exif_write(jpg_path, date_time_str, lat, lon):
     try:
         exif_dict = piexif.load(jpg_path)
     except Exception:
-        print("Exception")
         exif_dict = {"0th":{}, "Exif":{}, "GPS":{}, "1st":{}}
 
     # Date/Time
@@ -143,6 +143,45 @@ def jpg_exif_write(jpg_path, date_time_str, lat, lon):
     img.save(jpg_path, exif=exif_bytes)
 
     set_file_timestamp(jpg_path, date_time_str[:-4])
+
+# =========================================================================== #
+
+def mp4_exif_write(mp4_path, date_time_str, lat, lon):
+
+    """
+    date_time_str = "2025:12:02 18:12:04"
+    lat = 40.444803
+    lon = -77.34570
+    """
+
+    # GPS
+    lat_ref = "N" if float(lat) >= 0 else "S"
+    lon_ref = "E" if float(lon) >= 0 else "W"
+
+    # Build exiftool args
+    cmd = [
+        "exiftool",
+        f"-CreateDate={date_time_str}",
+        f"-ModifyDate={date_time_str}",
+        f"-TrackCreateDate={date_time_str}",
+        f"-TrackModifyDate={date_time_str}",
+        f"-MediaCreateDate={date_time_str}",
+        f"-MediaModifyDate={date_time_str}",
+        f"-GPSLatitude={abs(float(lat))}",
+        f"-GPSLatitudeRef={lat_ref}",
+        f"-GPSLongitude={abs(float(lon))}",
+        f"-GPSLongitudeRef={lon_ref}",
+        "-overwrite_original",
+        mp4_path
+    ]
+
+    # run exiftool program to update exif tags on mp4 files
+    result = subprocess.run(cmd, capture_output=True, text=True)
+
+    if result.returncode != 0:
+        print(f"Exiftool error for {mp4_path}: {result.stderr}")
+
+    set_file_timestamp(mp4_path, date_time_str[:-4])
 
 # =========================================================================== #
 
@@ -197,8 +236,11 @@ def memory_download(memories):
                         f.write(chunk)
             download_count += 1
 
+            # Handle writing provided metadata to exif tags in files
             if ext == ".jpg":
                 jpg_exif_write(filepath, line["date"], line["lat"], line["lon"])
+            elif ext == ".mp4":
+                mp4_exif_write(filepath, line["date"], line["lat"], line["lon"])
 
     print() # final print to flush buffer and have newline
 
