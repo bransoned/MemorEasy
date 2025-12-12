@@ -154,12 +154,56 @@ def write_exif(file_path, date_time_str, lat, lon, ext):
     cmd.extend(["-overwrite_original", str(file_path)])
 
     # run exiftool program to update md tags on file
-    result = subprocess.run(cmd, capture_output=True, text=True)
+    result = 0
+    if len(ext) > 0:
+        result = subprocess.run(cmd, capture_output=True, text=True)
 
-    if result.returncode != 0:
+    if result and result.returncode != 0:
         print(f"Exiftool error for {file_path}: {result.stderr}")
 
     set_file_timestamp(file_path, date_time_str[:-4])
+
+# =========================================================================== #
+
+# Extract files from a zip folder and place them into a new folder matching file naming convention
+def handle_zip(filepath, name, line):
+
+    # Where our extracted images will reside
+    new_folder = f"./memories/{name}"
+
+    # Unpack then remove zip file
+    shutil.unpack_archive(filepath, new_folder)
+    os.remove(filepath)
+
+    # Go through each file in extracted folder, find and tag mp4/jpg files then the folder
+    for file in os.listdir(new_folder):
+
+        zip_file_path = os.path.join(new_folder)
+
+        internal_ext = ""
+        if file.endswith("-main.mp4"):
+            new_file = f"{name}-main.mp4"
+            internal_ext = ".mp4"
+        elif file.endswith("-main.jpg"):
+            new_file = f"{name}-main.jpg"
+            internal_ext = ".jpg"
+        elif file.endswith("-overlay.png"):
+            new_file = f"{name}-overlay.png"
+        else:
+            new_file=file
+
+        # rename zip files from their SID to date/time names
+        shutil.move(f"{new_folder}/{file}", f"{new_folder}/{new_file}")
+
+        # If we have a mp4/jpg, write metadata to it
+        if internal_ext != "":
+            write_exif(f"{new_folder}/{name}-main{internal_ext}", line["date"], line["lat"], line["lon"], internal_ext)
+
+        # Updates modified time of folder to internal file creation date
+        write_exif(new_folder, line["date"], line["lat"], line["lon"], "")
+
+    # TODO Combine png layer with jpg file. Save as separate file to preserve blank jpg
+    # Delete png after that
 
 # =========================================================================== #
 
@@ -177,10 +221,6 @@ def memory_download(memories):
 
         url = line["url"]
         name = line["date"]
-
-        # Find SID value
-#        SID_pattern = r"&sid=(.{36})"
-#        SID = re.search(SID_pattern, url).group(1)
 
         name = name.replace(" ", "-")[:-4]
         name = name.replace(":", "")
@@ -214,10 +254,13 @@ def memory_download(memories):
                         f.write(chunk)
             download_count += 1
 
-            if ext != ".zip":
-                write_exif(filepath, line["date"], line["lat"], line["lon"], ext)
+            # Handle file operations for memories provided in zip folders
+            if ext == ".zip":
+                handle_zip(filepath, name, line)
+
+            # Normal JPG or MP4 provided to us
             else:
-                pass # next feature will be to handle zips
+                write_exif(filepath, line["date"], line["lat"], line["lon"], ext)
 
     print() # final print to flush buffer and have newline
 
