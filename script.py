@@ -2,6 +2,12 @@ from bs4 import BeautifulSoup
 import re
 import requests
 from pathlib import Path
+import piexif
+from PIL import Image
+
+import os
+from datetime import datetime
+import time
 
 """
 TODO Need to take data from downloads and begin writing the relevant exif data next...
@@ -74,16 +80,90 @@ def parse_snapchat_memories(html_text):
 
 # =========================================================================== #
 
+def deg_to_dms(deg):
+    d = int(abs(deg))
+    md = (abs(deg) - d) * 60
+    m = int(md)
+    sd = (md - m) * 60
+
+    return (
+        (d, 1),
+        (m, 1),
+        (int(sd * 10000), 10000)
+    )
+
+# =========================================================================== #
+
+def set_file_timestamp(path, date_time_str):
+    # Change modified times to original capture date
+
+    # date_time_str = "YYYY:MM:DD HH:MM:SS"
+    dt = datetime.strptime(date_time_str, "%Y-%m-%d %H:%M:%S")
+    ts = dt.timestamp()
+
+    # Set access and modified times
+    os.utime(path, (ts, ts))
+
+
+# =========================================================================== #
+
+def jpg_exif_write(jpg_path, date_time_str, lat, lon):
+
+    """
+    date_time_str = "2025:12:02 18:12:04"
+    lat = 40.444803
+    lon = -77.34570
+    """
+
+
+    try:
+        exif_dict = piexif.load(jpg_path)
+    except Exception:
+        print("Exception")
+        exif_dict = {"0th":{}, "Exif":{}, "GPS":{}, "1st":{}}
+
+    # Date/Time
+    exif_dict["0th"][piexif.ImageIFD.DateTime] = date_time_str
+    exif_dict["Exif"][piexif.ExifIFD.DateTimeOriginal] = date_time_str
+    exif_dict["Exif"][piexif.ExifIFD.DateTimeDigitized] = date_time_str
+
+    # GPS
+    lat_ref = "N" if float(lat) >= 0 else "S"
+    lon_ref = "E" if float(lon) >= 0 else "W"
+
+    exif_dict["GPS"][piexif.GPSIFD.GPSLatitudeRef] = lat_ref
+    exif_dict["GPS"][piexif.GPSIFD.GPSLatitude] = deg_to_dms(float(lat))
+
+    exif_dict["GPS"][piexif.GPSIFD.GPSLongitudeRef] = lon_ref
+    exif_dict["GPS"][piexif.GPSIFD.GPSLongitude] = deg_to_dms(float(lon))
+
+    # Write new EXIF data to image file
+    exif_bytes = piexif.dump(exif_dict)
+    img = Image.open(jpg_path)
+    img.save(jpg_path, exif=exif_bytes)
+
+    set_file_timestamp(jpg_path, date_time_str[:-4])
+
+# =========================================================================== #
+
 def memory_download(memories):
 
     total_files = len(memories)
     download_count = 1
+
+    if total_files <= 0:
+        print("No memories found.")
+        return
 
     # Logic to begin downloading begins here
     for line in memories:
 
         url = line["url"]
         name = line["date"]
+
+        # Find SID value
+#        SID_pattern = r"&sid=(.{36})"
+#        SID = re.search(SID_pattern, url).group(1)
 
         name = name.replace(" ", "-")[:-4]
         name = name.replace(":", "")
@@ -116,6 +196,9 @@ def memory_download(memories):
                     if chunk: # filter out keep-alive new chunks
                         f.write(chunk)
             download_count += 1
+
+            if ext == ".jpg":
+                jpg_exif_write(filepath, line["date"], line["lat"], line["lon"])
 
     print() # final print to flush buffer and have newline
 
