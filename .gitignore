@@ -2,6 +2,11 @@
 memories_history.html
 memories/
 
+# Very important for making sure local exiftool implementation works
+!/bin/exiftool_files/lib/
+!/bin/exiftool_files/lib/*
+
+
 # Byte-compiled / optimized / DLL files
 __pycache__/
 *.py[codz]
