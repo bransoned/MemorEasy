@@ -163,6 +163,28 @@ def write_exif(file_path, date_time_str, lat, lon, ext):
 
 # =========================================================================== #
 
+def extract_zip(filepath, name):
+    shutil.unpack_archive(filepath, f"./memories/{name}")
+    os.remove(filepath)
+
+    for file in os.listdir(f"./memories/{name}"):
+        print("file: ", file)
+        zip_file_path = os.path.join(f"./memories/{name}")
+
+        if file.endswith("-main.mp4"):
+            new_file = f"{name}-main.mp4"
+        elif file.endswith("-main.jpg"):
+            new_file = f"{name}-main.jpg"
+        elif file.endswith("-overlay.png"):
+            new_file = f"{name}-overlay.png"
+        else:
+            new_file=file
+
+        # rename zip files from their SID to date/time names
+        shutil.move(f"./memories/{name}/{file}", f"./memories/{name}/{new_file}")
+
+# =========================================================================== #
+
 def memory_download(memories):
 
     total_files = len(memories)
@@ -214,10 +236,13 @@ def memory_download(memories):
                         f.write(chunk)
             download_count += 1
 
-            if ext != ".zip":
+            # Unpack and then remove zip files
+            if ext == ".zip":
+                extract_zip(filepath, name)
+                # add functionality to read through existing dirs and then modify md here
+
+            else ext != ".zip":
                 write_exif(filepath, line["date"], line["lat"], line["lon"], ext)
-            else:
-                pass # next feature will be to handle zips
 
     print() # final print to flush buffer and have newline
 
