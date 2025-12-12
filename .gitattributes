@@ -1,0 +1,2 @@
+bin/exiftool_files/** linguist-vendored
+bin/exiftool.exe binary
