@@ -6,6 +6,9 @@ name: Test and Build
 on:
   push:
     branches: [ "main" ]
+    tags:
+      - "v*"
+      
   pull_request:
     branches: [ "main" ]
 
@@ -142,6 +145,7 @@ jobs:
         shell: bash
         run: |
           COMMON_ARGS="--onefile \
+            --name MemorEasy \
             --copy-metadata imageio \
             --copy-metadata imageio-ffmpeg \
             --copy-metadata moviepy"
@@ -164,3 +168,9 @@ jobs:
         with:
           name: MemorEasy-${{ runner.os }}
           path: dist/*
+      
+      - name: Upload binaries to GitHub Release
+        if: startsWith(github.ref, 'refs/tags/')
+        uses: softprops/action-gh-release@v1
+        with:
+          files: dist/*
