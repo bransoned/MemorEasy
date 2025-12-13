@@ -55,7 +55,7 @@ jobs:
         curl -L https://exiftool.org/exiftool-13.43_64.zip -o exiftool.zip
         Expand-Archive -Path exiftool.zip -DestinationPath exiftool_temp
         mkdir bin
-        Move-Item exiftool_temp/exiftool(-k).exe bin/exiftool.exe
+        Move-Item "exiftool_temp/exiftool(-k).exe" bin/exiftool.exe
         Move-Item exiftool_temp/exiftool_files bin/exiftool_files
         Remove-Item exiftool.zip
         Remove-Item -Recurse exiftool_temp
