@@ -110,15 +110,20 @@ jobs:
       - name: Build binary
         shell: bash
         run: |
-          pyinstaller \
+          PYI_ARGS="\
             --onefile \
             --copy-metadata imageio \
             --copy-metadata imageio-ffmpeg \
             --copy-metadata moviepy \
-            --add-binary "bin/exiftool.exe;bin" \
-            --add-binary "bin/ffmpeg.exe;bin" \
-            --add-data "bin/exiftool_files;bin/exiftool_files" \
-            script.py
+
+            if [[ "$RUNNER_OS" == "Windows" ]]; then
+              PYI_ARGS="$PYI_ARGS \
+                --add-binary bin/exiftool.exe;bin \
+                --add-binary bin/ffmpeg.exe;bin \
+                --add-data bin/exiftool_files;bin/exiftool_files"
+            fi
+
+            pyinstaller $PYI_ARGS script.py
 
       - name: Upload artifact
         uses: actions/upload-artifact@v4
