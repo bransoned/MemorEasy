@@ -40,23 +40,47 @@ jobs:
 
   # Build Windows executable (only on push to main, after tests pass)
   build-windows:
-#    needs: test  # Wait for tests to pass
-#    if: github.event_name == 'push' && github.ref == 'refs/heads/main'
+    needs: test  # Wait for tests to pass
+
     runs-on: windows-latest
     steps:
     - uses: actions/checkout@v4
+    
     - name: Set up Python
       uses: actions/setup-python@v3
       with:
         python-version: '3.12'
+    - name: Download Exiftool
+      run: |
+        curl -L https://exiftool.org/exiftool-13.43_64.zip -o exiftool.zip
+        Expand-Archive -Path exiftool.zip -DestinationPath exiftool_temp
+        mkdir bin
+        Move-Item exiftool_temp/exiftool(-k).exe bin/exiftool.exe
+        Move-Item exiftool_temp/exiftool_files bin/exiftool_files
+        Remove-Item exiftool.zip
+        Remove-Item -Recurse exiftool_temp
+      shell: pwsh
+
+    - name: Download ffmpeg
+      run: |
+        curl -L https://github.com/BtbN/FFmpeg-Builds/releases/download/latest/ffmpeg-master-latest-win64-gpl.zip -o ffmpeg.zip
+        Expand-Archive -Path ffmpeg.zip -DestinationPath ffmpeg_temp
+        Move-Item ffmpeg_temp/ffmpeg-master-latest-win64-gpl/bin/ffmpeg.exe bin/ffmpeg.exe
+        Remove-Item ffmpeg.zip
+        Remove-Item -Recurse ffmpeg_temp
+      shell: pwsh
+
+      
     - name: Install dependencies
       run: |
         python -m pip install --upgrade pip
         pip install -r requirements.txt
         pip install pyinstaller
+        
     - name: Build with PyInstaller
       run: |
         python -m PyInstaller --onefile --add-binary "bin/exiftool.exe;bin" --add-data "bin/exiftool_files;bin/exiftool_files" script.py
+   
     - name: Upload artifact
       uses: actions/upload-artifact@v4
       with:
