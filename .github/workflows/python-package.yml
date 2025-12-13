@@ -70,7 +70,7 @@ jobs:
       - name: Collect ffmpeg & exiftool (Linux)
         if: runner.os == 'Linux'
         run: |
-          mkidr -p bin
+          mkdir -p bin
           FFMPEG_PATH=$(which ffmpeg)
           EXIFTOOL_PATH=$(which exiftool)
       
