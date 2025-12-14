@@ -327,16 +327,59 @@ def set_file_timestamp(path, date_time_str) -> None:
             f"Failed to set timestamp on {path}: {e}."
             f"This may be due to file permissions or filesystem limitations."
         )
+
 # =========================================================================== #
 
-def write_exif(file_path, date_time_str, lat, lon, ext) -> None:
-    """
-    date_time_str = "2025:12:02 18:12:04"
-    lat = 40.444803
-    lon = -77.34570
-    """
+"""
+Write EXIF metadata to image or video file
 
-    exiftool_path = find_exiftool()
+Args:
+    file_path: Path to media file
+    date_time_str: DateTime in format "YYYY-MM-DD HH:MM:SS" in UTC
+    lat: Latitude decimal as a string
+    lon: Longitude decimal as a string
+
+Raises:
+    FileNotFoundError: If file or directory doesn't exist
+    DependencyError: If exiftool not found
+    ValueError: If coordinates are invalid
+    MemorEasyError: If exiftool fails
+"""
+def write_exif(file_path: Path, date_time_str: str, lat: str, lon: str) -> None:
+
+    if isinstance(file_path, str):
+        file_path = Path(file_path)
+
+    if not file_path.exists():
+        raise FileNotFoundError(f"File not found: {file_path}")
+
+    # Get extension and skip if unsupported
+    ext = file_path.suffix.lower()
+
+    # Blank ext accounts for directories/folders
+    if ext not in ['', '.jpg', '.jpeg', '.mp4', '.png']:
+        print(f"Skipping EXIF for {file_path} for unsupported format: {ext}")
+        return
+
+    if ext == '.jpeg':
+        ext = 'jpg'
+
+    try:
+        exiftool_path = find_exiftool()
+    except DependencyError:
+        raise
+
+    try:
+        lat_f = float(lat)
+        lon_f = float(lon)
+
+        if not (-90 <= lat_f <= 90):
+            raise ValueError(f"Latitude {lat_f} out of range [-90, 90]")
+        if not (-180 <= lon_f <= 180):
+            raise ValueError(f"Longitude {lon_f} out of range [-180, 180]")
+
+    except Exception as e:
+        raise ValueError(f"Invalid coordinates for '{file_path}' ({lat}, {lon}). Skipping EXIF: {e}.")
 
     # Base command with common tags
     cmd = [
@@ -369,20 +412,28 @@ def write_exif(file_path, date_time_str, lat, lon, ext) -> None:
 
     cmd.extend(["-overwrite_original", str(file_path)])
 
-    # run exiftool program to update md tags on file
-    result = 0
-    if len(ext) > 0:
-        result = subprocess.run(cmd, capture_output=True, text=True)
+    # run exiftool program to update metadata tags on file
+    try:
+        # Skip when it is a directory
+        if len(ext) > 0:
+            result = subprocess.run(cmd, capture_output=True, text=True)
 
-    if result and result.returncode != 0:
-        print(f"Exiftool error for {file_path}: {result.stderr}")
+            if result.returncode != 0:
+                print(f"Exiftool error for {file_path}: {result.stderr.strip()}")
 
-    set_file_timestamp(file_path, date_time_str[:-4])
+    except Exception as e:
+        raise MemorEasyError(f"Exiftool failed for {file_path}: {e}")
+
+    try:
+        set_file_timestamp(file_path, date_time_str[:-4])
+
+    except Exception as e:
+        print(f"Warning: Could not set modified-date timestamp for {file_path}: {e}.")
 
 # =========================================================================== #
 
 # Overlay PNG layer onto JPG image
-def merge_jpg_with_overlay(jpg_path, png_path) -> str:
+def merge_jpg_with_overlay(jpg_path, png_path) -> Path:
 
     # Open images
     base_jpg = Image.open(jpg_path)
@@ -406,13 +457,13 @@ def merge_jpg_with_overlay(jpg_path, png_path) -> str:
 
     os.remove(png_path)
 
-    return combined_path
+    return Path(combined_path)
 
 
 # =========================================================================== #
 
 #Overlay PNG layer onto MP4 video
-def merge_mp4_with_overlay(mp4_path, png_path) -> str:
+def merge_mp4_with_overlay(mp4_path, png_path) -> Path:
 
     ffmpeg_path = find_ffmpeg()
 
@@ -454,7 +505,7 @@ def merge_mp4_with_overlay(mp4_path, png_path) -> str:
 
     os.remove(png_path)
 
-    return combined_path
+    return Path(combined_path)
 
 # =========================================================================== #
 
@@ -462,7 +513,7 @@ def merge_mp4_with_overlay(mp4_path, png_path) -> str:
 def handle_zip(filepath, name, line) -> None:
 
     # Where our extracted images will reside
-    new_folder = f"./memories/{name}"
+    new_folder = Path(f"./memories/{name}")
 
     # Unpack then remove zip file
     shutil.unpack_archive(filepath, new_folder)
@@ -498,19 +549,19 @@ def handle_zip(filepath, name, line) -> None:
 
         # If we have a mp4/jpg, write metadata to it
         if internal_ext != "":
-            write_exif(f"{new_folder}/{name}-main{internal_ext}", line["date"], line["lat"], line["lon"], internal_ext)
+            write_exif(Path(f"{new_folder}/{name}-main{internal_ext}"), line["date"], line["lat"], line["lon"])
 
     # Handles combining main layers with overlay
     if have_mp4:
         combined_path = merge_mp4_with_overlay(f"{new_folder}/{name}-main.mp4", f"{new_folder}/{name}-overlay.png")
-        write_exif(combined_path, line["date"], line["lat"], line["lon"], ".mp4")
+        write_exif(combined_path, line["date"], line["lat"], line["lon"])
 
     if have_jpg:
         combined_path = merge_jpg_with_overlay(f"{new_folder}/{name}-main.jpg", f"{new_folder}/{name}-overlay.png")
-        write_exif(combined_path, line["date"], line["lat"], line["lon"], ".jpg")
+        write_exif(combined_path, line["date"], line["lat"], line["lon"])
 
     # Updates modified time of folder to internal file creation date
-    write_exif(new_folder, line["date"], line["lat"], line["lon"], "")
+    write_exif(new_folder, line["date"], line["lat"], line["lon"])
 
 # =========================================================================== #
 
@@ -621,7 +672,7 @@ def memory_download(memories: list[dict[str, str, str, str, str]]) -> None:
                     if ext == ".zip":
                         handle_zip(filepath, name, memory)
                     else:
-                        write_exif(filepath, date_str, lat, lon, ext)
+                        write_exif(filepath, date_str, lat, lon)
 
                 except Exception as e:
                     print(f"\nMemory {idx}: Post-processing failed: {e}\n")
