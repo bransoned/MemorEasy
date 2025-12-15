@@ -142,9 +142,9 @@ TODO Add built with images
 ... Especially for Windows users
 
 1. Download the pre-built executable for your platform from the latest release
-   - [Windows](https://github.com/bransoned/MemorEasy/releases/download/v1.0.0/MemorEasy.exe)
-   - [Linux](https://github.com/bransoned/MemorEasy/releases/download/v1.0.0/MemorEasy-Linux) (built on ubuntu-latest)
-   - [macOS](https://github.com/bransoned/MemorEasy/releases/download/v1.0.0/MemorEasy-macOS) (untested)
+   - [Windows](https://github.com/bransoned/MemorEasy/releases/latest/download/MemorEasy.exe)
+   - [Linux](https://github.com/bransoned/MemorEasy/releases/latest/download/MemorEasy-Linux) (built on ubuntu-latest)
+   - [macOS](https://github.com/bransoned/MemorEasy/releases/latest/download/MemorEasy-macOS) (untested)
 2. Move the downloaded executable/binary to the folder or directory where you want the images to be downloaded
    - Windows Example: Move `MemorEasy.exe` to `C:\Users\username\Pictures\`
    - Linux/macOS Example: Move `MemorEasy-Linux` or `MemorEasy-macOS` to `~/Pictures/`
