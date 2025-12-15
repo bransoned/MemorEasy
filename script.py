@@ -448,6 +448,9 @@ Returns:
     ValueError:
 
 Raises:
+    FileNotFoundError: If either image file does not exist
+    ImageProcessingError: If any various parts of image processing fails
+    ValueError: If jpg_path does not end with "-main.jpg"
 """
 def merge_jpg_with_overlay(jpg_path: Path, png_path: Path) -> Path:
 
