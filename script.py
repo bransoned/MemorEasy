@@ -999,6 +999,13 @@ def memory_download(memories: list[dict[str, str, str, str, str]]) -> None:
 
             except requests.exceptions.HTTPError as e:
                 # Don't retry on 404, 403, etc.
+
+                # Retry on server errors. This seems to be most prevalent error when downloading
+                status = e.response.status_code
+                if 500 <= status < 600:
+                    print(f"\nMemory {idx}: Server error {status}, retry attempt {attempt}/{max_retries}")
+                    continue
+
                 print(f"\nMemory {idx}: HTTP error {e.response.status_code}, skipping\n")
                 failed_downloads.append((idx, f"HTTP {e.response.status_code}"))
                 break
