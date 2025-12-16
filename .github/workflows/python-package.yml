@@ -67,47 +67,44 @@ jobs:
       # -----------------------------
       # OS-specific dependencies
       # -----------------------------
-      - name: Install system deps (Linux)
+      - name: Install ffmpeg (Linux)
         if: runner.os == 'Linux'
         run: |
           sudo apt-get update
-          sudo apt-get install -y ffmpeg exiftool
+          sudo apt-get install -y ffmpeg
+          mkdir -p bin
+          cp $(which ffmpeg) bin/ffmpeg
+          chmod +x bin/ffmpeg
 
-      - name: Collect ffmpeg & exiftool (Linux)
+      - name: Install exiftool (Linux)
         if: runner.os == 'Linux'
         run: |
+          curl -L https://exiftool.org/Image-ExifTool-13.44.tar.gz -o exiftool.tar.gz
+          tar -xzf exiftool.tar.gz
           mkdir -p bin
-          FFMPEG_PATH=$(which ffmpeg)
-          EXIFTOOL_PATH=$(which exiftool)
-      
-          echo "ffmpeg: $FFMPEG_PATH"
-          echo "exiftool: $EXIFTOOL_PATH"
-      
-          cp "$FFMPEG_PATH" bin/ffmpeg
-          cp "$EXIFTOOL_PATH" bin/exiftool
-      
-          chmod +x bin/ffmpeg bin/exiftool
-          
-      - name: Install system deps (macOS)
+          mv Image-ExifTool-13.44/exiftool bin/exiftool
+          chmod +x bin/exiftool
+          mv Image-ExifTool-13.44/lib bin/exiftool_lib
+          rm -rf Image-ExifTool-13.44 exiftool.tar.gz
+
+      - name: Install ffmpeg (macOS)
         if: runner.os == 'macOS'
         run: |
-          brew install ffmpeg exiftool
-  
-      - name: Collect ffmpeg & exiftool (macOS)
-        if: runner.os == 'macOS'
-        shell: bash
-        run: |
+          brew install ffmpeg
           mkdir -p bin
-          FFMPEG_PATH=$(which ffmpeg)
-          EXIFTOOL_PATH=$(which exiftool)
-      
-          echo "ffmpeg: $FFMPEG_PATH"
-          echo "exiftool: $EXIFTOOL_PATH"
-      
-          cp "$FFMPEG_PATH" bin/ffmpeg
-          cp "$EXIFTOOL_PATH" bin/exiftool
-      
-          chmod +x bin/ffmpeg bin/exiftool
+          cp $(which ffmpeg) bin/ffmpeg
+          chmod +x bin/ffmpeg
+
+      - name: Install exiftool (macOS)
+        if: runner.os == 'macOS'
+        run: |
+          curl -L https://exiftool.org/Image-ExifTool-13.44.tar.gz -o exiftool.tar.gz
+          tar -xzf exiftool.tar.gz
+          mkdir -p bin
+          mv Image-ExifTool-13.44/exiftool bin/exiftool
+          chmod +x bin/exiftool
+          mv Image-ExifTool-13.44/lib bin/exiftool_lib
+          rm -rf Image-ExifTool-13.44 exiftool.tar.g
           
       - name: Download ExifTool (Windows)
         if: runner.os == 'Windows'
@@ -161,7 +158,8 @@ jobs:
             else
               BIN_ARGS="\
                 --add-binary bin/ffmpeg:bin \
-                --add-binary bin/exiftool:bin"
+                --add-binary bin/exiftool:bin \
+                --add-date bin/exiftool_files;bin/exiftool_files"
             fi
 
             pyinstaller $COMMON_ARGS $BIN_ARGS script.py
