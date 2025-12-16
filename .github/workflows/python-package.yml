@@ -159,7 +159,7 @@ jobs:
               BIN_ARGS="\
                 --add-binary bin/ffmpeg:bin \
                 --add-binary bin/exiftool:bin \
-                --add-date bin/exiftool_files;bin/exiftool_files"
+                --add-data bin/exiftool_files;bin/exiftool_files"
             fi
 
             pyinstaller $COMMON_ARGS $BIN_ARGS script.py
