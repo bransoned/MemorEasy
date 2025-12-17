@@ -79,7 +79,7 @@ jobs:
       - name: Install exiftool (Linux)
         if: runner.os == 'Linux'
         run: |
-          curl -L https://exiftool.org/Image-ExifTool-13.44.tar.gz -o exiftool.tar.gz
+          curl -L https://sourceforge.net/projects/exiftool/files/Image-ExifTool-13.43.tar.gz/download -o exiftool.tar.gz
           tar -xzf exiftool.tar.gz
           mkdir -p bin
           mv Image-ExifTool-13.44/exiftool bin/exiftool
@@ -98,7 +98,7 @@ jobs:
       - name: Install exiftool (macOS)
         if: runner.os == 'macOS'
         run: |
-          curl -L https://exiftool.org/Image-ExifTool-13.44.tar.gz -o exiftool.tar.gz
+          curl -L https://sourceforge.net/projects/exiftool/files/Image-ExifTool-13.43.tar.gz/download -o exiftool.tar.gz
           tar -xzf exiftool.tar.gz
           mkdir -p bin
           mv Image-ExifTool-13.44/exiftool bin/exiftool
@@ -110,7 +110,7 @@ jobs:
         if: runner.os == 'Windows'
         shell: pwsh
         run: |
-          curl -L https://exiftool.org/exiftool-13.43_64.zip -o exiftool.zip
+          curl -L https://sourceforge.net/projects/exiftool/files/exiftool-13.43_64.zip/download -o exiftool.zip
           mkdir bin
           Expand-Archive exiftool.zip exiftool_temp -Force
           $inner = Get-ChildItem exiftool_temp -Directory | Select-Object -First 1
@@ -159,7 +159,7 @@ jobs:
               BIN_ARGS="\
                 --add-binary bin/ffmpeg:bin \
                 --add-binary bin/exiftool:bin \
-                --add-data bin/exiftool_files;bin/exiftool_files"
+                --add-data bin/exiftool_files:bin/exiftool_files"
             fi
 
             pyinstaller $COMMON_ARGS $BIN_ARGS script.py
