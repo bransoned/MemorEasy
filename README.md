@@ -135,7 +135,10 @@ TODO Add built with images
       your first time exporting Memories and/or running this script.
     - Lastly, when delivered the zip file from Snapchat with your data, unzip and find the `memories_history.html` file. MemorEasy will parse this file
       for all of the information needed to import your Memories.
-    - TODO Add images or a GIF showing process of selecting data.
+    - TODO Add images or a GIF showing process of selecting data.  
+2. **NOTE:** For MacOS and Linux, you __must__ install the required exiftool dependency:
+   - MacOS: `brew install exiftool`
+   - Linux: `apt install exiftool`
 <!--2. Confirm that [Python](https://www.python.org/downloads/) is installed on your system.-->
 
 ### Quick Start (Recommended)
