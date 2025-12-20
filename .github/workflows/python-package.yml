@@ -101,7 +101,7 @@ jobs:
           
           cp "$FFMPEG_PATH" bin/ffmpeg
           
-          chmod +x bin/ffmpeg bin/exiftool
+          chmod +x bin/ffmpeg
           
       - name: Download ExifTool (Windows)
         if: runner.os == 'Windows'
