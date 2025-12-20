@@ -52,7 +52,7 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        os: [windows-latest, ubuntu-22.04, macos-latest]
+        os: [windows-latest, ubuntu-22.04, macos-latest, macos-15-intel]
 
     runs-on: ${{ matrix.os }}
 
@@ -71,42 +71,36 @@ jobs:
         if: runner.os == 'Linux'
         run: |
           sudo apt-get update
-          sudo apt-get install -y ffmpeg exiftool
+          sudo apt-get install -y ffmpeg
 
-      - name: Collect ffmpeg & exiftool (Linux)
+      - name: Collect ffmpeg (Linux)
         if: runner.os == 'Linux'
         run: |
           mkdir -p bin
           FFMPEG_PATH=$(which ffmpeg)
-          EXIFTOOL_PATH=$(which exiftool)
       
           echo "ffmpeg: $FFMPEG_PATH"
-          echo "exiftool: $EXIFTOOL_PATH"
       
           cp "$FFMPEG_PATH" bin/ffmpeg
-          cp "$EXIFTOOL_PATH" bin/exiftool
       
-          chmod +x bin/ffmpeg bin/exiftool
+          chmod +x bin/ffmpeg
           
       - name: Install system deps (macOS)
         if: runner.os == 'macOS'
         run: |
-          brew install ffmpeg exiftool
+          brew install ffmpeg
   
-      - name: Collect ffmpeg & exiftool (macOS)
+      - name: Collect ffmpeg (macOS)
         if: runner.os == 'macOS'
         shell: bash
         run: |
           mkdir -p bin
           FFMPEG_PATH=$(which ffmpeg)
-          EXIFTOOL_PATH=$(which exiftool)
-      
+          
           echo "ffmpeg: $FFMPEG_PATH"
-          echo "exiftool: $EXIFTOOL_PATH"
-      
+          
           cp "$FFMPEG_PATH" bin/ffmpeg
-          cp "$EXIFTOOL_PATH" bin/exiftool
-      
+          
           chmod +x bin/ffmpeg bin/exiftool
           
       - name: Download ExifTool (Windows)
@@ -161,7 +155,6 @@ jobs:
             else
               BIN_ARGS="\
                 --add-binary bin/ffmpeg:bin \
-                --add-binary bin/exiftool:bin"
             fi
 
             pyinstaller $COMMON_ARGS $BIN_ARGS script.py
@@ -186,4 +179,5 @@ jobs:
         if: startsWith(github.ref, 'refs/tags/')
         uses: softprops/action-gh-release@v1
         with:
+          name: MemorEasy-${{ runner.os }}-${{ runner.arch }}
           files: dist/*
