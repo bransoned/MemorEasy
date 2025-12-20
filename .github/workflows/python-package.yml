@@ -19,7 +19,7 @@ jobs:
 
   # Test on multiple Python versions (Linux)
   test:
-    runs-on: ubuntu-20.04
+    runs-on: ubuntu-22.04
     strategy:
       fail-fast: false
       matrix:
@@ -52,7 +52,7 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        os: [windows-latest, ubuntu-20.04, macos-latest]
+        os: [windows-latest, ubuntu-22.04, macos-latest]
 
     runs-on: ${{ matrix.os }}
 
