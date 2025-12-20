@@ -23,7 +23,7 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        python-version: ["3.9", "3.10", "3.11"]
+        python-version: ["3.10", "3.11", "3.12"]
     steps:
     - uses: actions/checkout@v4
     - name: Set up Python ${{ matrix.python-version }}
@@ -113,7 +113,7 @@ jobs:
         if: runner.os == 'Windows'
         shell: pwsh
         run: |
-          curl -L https://exiftool.org/exiftool-13.43_64.zip -o exiftool.zip
+          curl -L https://sourceforge.net/projects/exiftool/files/exiftool-13.43_64.zip/download -o exiftool.zip
           mkdir bin
           Expand-Archive exiftool.zip exiftool_temp -Force
           $inner = Get-ChildItem exiftool_temp -Directory | Select-Object -First 1
