@@ -135,20 +135,24 @@ TODO Add built with images
       your first time exporting Memories and/or running this script.
     - Lastly, when delivered the zip file from Snapchat with your data, unzip and find the `memories_history.html` file. MemorEasy will parse this file
       for all of the information needed to import your Memories.
-    - TODO Add images or a GIF showing process of selecting data.
+    - TODO Add images or a GIF showing process of selecting data.  
 <!--2. Confirm that [Python](https://www.python.org/downloads/) is installed on your system.-->
 
 ### Quick Start (Recommended)
 ... Especially for Windows users
 
 1. Download the pre-built executable for your platform from the latest release
-   - [Windows](https://github.com/bransoned/MemorEasy/releases/latest/download/MemorEasy.exe)
-   - [Linux](https://github.com/bransoned/MemorEasy/releases/latest/download/MemorEasy-Linux) (built on ubuntu-latest)
-   - [macOS](https://github.com/bransoned/MemorEasy/releases/latest/download/MemorEasy-macOS) (untested)
-2. Move the downloaded executable/binary to the folder or directory where you want the images to be downloaded
+   - [Windows](https://github.com/bransoned/MemorEasy/releases/latest/download/MemorEasy-Windows-X64.exe)
+   - [Linux](https://github.com/bransoned/MemorEasy/releases/latest/download/MemorEasy-Linux-X64)
+   - [macOS](https://github.com/bransoned/MemorEasy/releases/latest/download/MemorEasy-macOS-ARM64) (ARM)
+   - [macOS](https://github.com/bransoned/MemorEasy/releases/latest/download/MemorEasy-macOS-X64) (X64)
+2. **NOTE:** For MacOS and Linux, you __must__ install the required exiftool dependency:
+   - MacOS: `brew install exiftool`
+   - Linux: `apt install exiftool`
+3. Move the downloaded executable/binary to the folder or directory where you want the images to be downloaded
    - Windows Example: Move `MemorEasy.exe` to `C:\Users\username\Pictures\`
    - Linux/macOS Example: Move `MemorEasy-Linux` or `MemorEasy-macOS` to `~/Pictures/`
-3. Place the `memories_history.html` file in the same folder or directory as the executable/binary file
+4. Place the `memories_history.html` file in the same folder or directory as the executable/binary file
 
 ### Installation from Source (Advanced)
 
