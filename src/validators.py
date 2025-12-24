@@ -1,5 +1,5 @@
 from pathlib import Path
-from .exceptions import *
+from .exceptions import InvalidInputFileError
 
 # =========================================================================== #
 
@@ -15,6 +15,8 @@ Returns:
 Raises:
     InvalidInputFileError: If file doesn't exist or is invalid
 """
+
+
 def validate_input_file(file_path: str) -> Path:
 
     path = Path(file_path)
