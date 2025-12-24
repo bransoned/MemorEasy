@@ -55,7 +55,7 @@ Raises:
 """
 
 
-def parse_snapchat_memories0(
+def parse_snapchat_memories(
         html_text
 ) -> list[dict[str, str, str, str, str]]:
 

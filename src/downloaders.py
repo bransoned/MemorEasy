@@ -1,7 +1,9 @@
 from .media_processing import (
-    write_exif,
     merge_mp4_with_overlay,
-    merge_jpg_with_overlay,
+    merge_jpg_with_overlay
+)
+from .metadata import (
+    write_exif,
     set_file_timestamp
 )
 from .exceptions import (
