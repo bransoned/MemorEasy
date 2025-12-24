@@ -90,7 +90,7 @@ def write_exif(file_path: Path, date_time_str: str, lat: str, lon: str) -> None:
         ext = 'jpg'
 
     try:
-        exiftool_path = find_exiftool()
+        exiftool_path = find_dependency("exiftool")
     except DependencyError:
         raise
 

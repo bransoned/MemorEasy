@@ -183,7 +183,7 @@ def merge_mp4_with_overlay(mp4_path: Path, png_path: Path) -> Path:
 
     # Find ffmpeg dependency
     try:
-        ffmpeg_path = find_ffmpeg()
+        ffmpeg_path = find_dependency("ffmpeg")
     except DependencyError:
         raise # Re-raise to be handled by caller
 
