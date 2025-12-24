@@ -123,7 +123,7 @@ def handle_zip(
         if not main_mp4 and not main_jpg:
             raise ZipExtractionError(
                 f"No main media file found in {filepath.name}. "
-                f"Exprected file ending with '-main.mp4' or '-main.jpg'"
+                f"Expected file ending with '-main.mp4' or '-main.jpg'"
             )
         if not overlay_png:
             print(
