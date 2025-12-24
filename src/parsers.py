@@ -1,5 +1,5 @@
-from .exceptions import *
-from .validators import *
+from .exceptions import InvalidInputFileError, ParseError
+from .validators import validate_input_file
 from bs4 import BeautifulSoup
 import re
 
@@ -13,6 +13,8 @@ Returns:
 Raises:
     InvalidInputFileError: If HTML structure does not match expected pattern
 """
+
+
 def parse_html() -> str:
     target_string = "<div id='mem-info-bar'"
 
@@ -29,7 +31,8 @@ def parse_html() -> str:
     # Check that our user info was found, otherwise raise exception
     if html_text is None:
         raise InvalidInputFileError(
-            f"{valid_user_file} does not appear to be a Snapchat-provided HTML file."
+            f"{valid_user_file} does not appear to be a "
+            f"Snapchat-provided HTML file."
             f"Missing expected '<div id='mem-info-bar'>' section."
             f"Please reference the README on prerequisites to run this script."
         )
@@ -37,6 +40,7 @@ def parse_html() -> str:
     return html_text
 
 # =========================================================================== #
+
 
 """
 Parse Snapchat file data and organize relevant metadata + download URLs
@@ -49,7 +53,11 @@ Returns:
 Raises:
     ParseError: If HTML structure is invalid or unexpected
 """
-def parse_snapchat_memories(html_text) -> list[dict[str, str, str, str, str]]:
+
+
+def parse_snapchat_memories0(
+        html_text
+) -> list[dict[str, str, str, str, str]]:
 
     try:
         soup = BeautifulSoup(html_text, "html.parser")
@@ -59,13 +67,15 @@ def parse_snapchat_memories(html_text) -> list[dict[str, str, str, str, str]]:
     table = soup.find("table")
     if not table:
         raise ParseError(
-            "No table found in HTML. The memories_history.html file may be corrupted or incorrect."
+            "No table found in HTML. The memories_history.html "
+            "file may be corrupted or incorrect."
         )
 
     rows = soup.find_all("tr")
     if len(rows) < 2:
         raise ParseError(
-            "Table has no data rows. The relevant section of memories_history.html file appears to be empty."
+            "Table has no data rows. The relevant section "
+            "of memories_history.html file appears to be empty."
         )
 
     # Skip header row
@@ -144,7 +154,8 @@ def parse_snapchat_memories(html_text) -> list[dict[str, str, str, str, str]]:
 
     if not memories:
         raise ParseError(
-            "No valid Memories found. The relevant contents in the file may be empty or in unexpected format."
+            "No valid Memories found. The relevant "
+            "contents in the file may be empty or in unexpected format."
         )
 
     if skipped_count > 0:

@@ -1,6 +1,10 @@
 from moviepy import VideoFileClip
-from .dependencies import *
-from .exceptions import *
+from .dependencies import find_dependency
+from .exceptions import (
+    ImageProcessingError,
+    VideoProcessingError,
+    DependencyError
+)
 from pathlib import Path
 from PIL import Image
 import subprocess
@@ -23,7 +27,12 @@ Raises:
     ImageProcessingError: If any various parts of image processing fails
     ValueError: If jpg_path does not end with "-main.jpg"
 """
-def merge_jpg_with_overlay(jpg_path: Path, png_path: Path) -> Path:
+
+
+def merge_jpg_with_overlay(
+        jpg_path: Path,
+        png_path: Path
+        ) -> Path:
 
     if isinstance(jpg_path, str):
         jpg_path = Path(jpg_path)
@@ -42,10 +51,15 @@ def merge_jpg_with_overlay(jpg_path: Path, png_path: Path) -> Path:
             f"JPG filename must end with '-main.jpg', got: {jpg_path.name}"
         )
 
-    combined_path = jpg_path.parent / jpg_path.name.replace("-main.jpg", "-combined.jpg")
+    combined_path = jpg_path.parent / jpg_path.name.replace(
+        "-main.jpg", "-combined.jpg"
+    )
 
     if combined_path.exists():
-        print(f"Combined image already exists: {combined_path.name}, skipping merge")
+        print(
+            f"Combined image already exists: "
+            f"{combined_path.name}, skipping merge"
+        )
         return
 
     try:
@@ -54,59 +68,82 @@ def merge_jpg_with_overlay(jpg_path: Path, png_path: Path) -> Path:
         try:
             base_jpg = Image.open(jpg_path)
         except Exception as e:
-            raise ImageProcessingError(f"Failed to open JPG {jpg_path.name}: {e}")
+            raise ImageProcessingError(
+                f"Failed to open JPG {jpg_path.name}: {e}"
+            )
         try:
             overlay = Image.open(png_path)
         except Exception as e:
-            raise ImageProcessingError(f"Failed to open PNG {png_path.name}: {e}")
+            raise ImageProcessingError(
+                f"Failed to open PNG {png_path.name}: {e}"
+            )
 
         # Validate images loaded properly
         if base_jpg.size[0] == 0 or base_jpg.size[1] == 0:
-            raise ImageProcessingError(f"JPG has invalid dimensions {base_jpg.size}")
+            raise ImageProcessingError(
+                f"JPG has invalid dimensions {base_jpg.size}"
+            )
         if overlay.size[0] == 0 or overlay.size[1] == 0:
-            raise ImageProcessingError(f"PNG has invalid dimensions {overlay.size}")
+            raise ImageProcessingError(
+                f"PNG has invalid dimensions {overlay.size}"
+            )
 
         # Convert JPG to RGBA for compositing
         try:
             if base_jpg.mode != "RGBA":
                 base_jpg = base_jpg.convert("RGBA")
         except Exception as e:
-            raise ImageProcessingError(f"Failed to convert JPG to RGBA: {e}")
+            raise ImageProcessingError(
+                f"Failed to convert JPG to RGBA: {e}"
+            )
 
         # Convert PNG to RGBA if needed
         try:
             if overlay.mode != "RGBA":
                 overlay = overlay.convert("RGBA")
         except Exception as e:
-            raise ImageProcessingError(f"Failed to convert PNG to RGBA: {e}")
+            raise ImageProcessingError(
+                f"Failed to convert PNG to RGBA: {e}"
+            )
 
         # Resize overlay if dimensions do not match
         if base_jpg.size != overlay.size:
             try:
                 overlay = overlay.resize(base_jpg.size, Image.LANCZOS)
             except Exception as e:
-                raise ImageProcessingError(f"Failed to resize overlay from {overlay.size} to {base_jpg.size}: {e}")
+                raise ImageProcessingError(
+                    f"Failed to resize overlay from "
+                    f"{overlay.size} to {base_jpg.size}: {e}"
+                )
 
         # Composite the two images
         try:
             combined = Image.alpha_composite(base_jpg, overlay)
         except Exception as e:
-            raise ImageProcessingError(f"Failed to composite images: {e}")
+            raise ImageProcessingError(
+                f"Failed to composite images: {e}"
+            )
 
         # Convert JPG back to RGB profile
         try:
             combined = combined.convert("RGB")
         except Exception as e:
-            raise ImageProcessingError(f"Failed to convert JPG {jpg_path} to RGB: {e}")
+            raise ImageProcessingError(
+                f"Failed to convert JPG {jpg_path} to RGB: {e}"
+            )
         # Save combined image
         try:
             combined.save(combined_path, "JPEG", quality=95)
         except Exception as e:
-            ImageProcessingError(f"Failed to save combined image {combined_path}: {e}")
+            ImageProcessingError(
+                f"Failed to save combined image {combined_path}: {e}"
+            )
 
         # Verify file was created and has size
         if not combined_path.exists():
-            raise ImageProcessingError("Combined image was not created")
+            raise ImageProcessingError(
+                "Combined image was not created"
+            )
         if combined_path.stat().st_size == 0:
             combined_path.unlink()  # Delete empty file
             raise ImageProcessingError("Combined image is empty")
@@ -114,7 +151,9 @@ def merge_jpg_with_overlay(jpg_path: Path, png_path: Path) -> Path:
         try:
             os.remove(png_path)
         except OSError as e:
-            print(f"Warning: Could not delete overlay PNG {png_path.name}: {e}")
+            print(
+                f"Warning: Could not delete overlay PNG {png_path.name}: {e}"
+            )
 
         return combined_path
 
@@ -123,7 +162,9 @@ def merge_jpg_with_overlay(jpg_path: Path, png_path: Path) -> Path:
         raise
     except Exception as e:
         # Catch any unexpected errors
-        raise ImageProcessingError(f"Unexpected error merging images: {e}")
+        raise ImageProcessingError(
+            f"Unexpected error merging images: {e}"
+        )
     finally:
         # Clean up image objects to free memory
         try:
@@ -135,6 +176,7 @@ def merge_jpg_with_overlay(jpg_path: Path, png_path: Path) -> Path:
                 combined.close()
         except Exception:
             pass
+
 
 # =========================================================================== #
 
@@ -154,6 +196,8 @@ Raises:
     VideoProcessingError: If any various parts of image processing fails
     ValueError: If mp4_path does not end with "-main.mp4"
 """
+
+
 def merge_mp4_with_overlay(mp4_path: Path, png_path: Path) -> Path:
 
     # Validate inputs are Path objects
@@ -164,9 +208,13 @@ def merge_mp4_with_overlay(mp4_path: Path, png_path: Path) -> Path:
 
     # Check files exist
     if not mp4_path.exists():
-        raise FileNotFoundError(f"MP4 file not found: {mp4_path}")
+        raise FileNotFoundError(
+            f"MP4 file not found: {mp4_path}"
+        )
     if not png_path.exists():
-        raise FileNotFoundError(f"PNG overlay not found: {png_path}")
+        raise FileNotFoundError(
+            f"PNG overlay not found: {png_path}"
+        )
 
     # Validate MP4 filename format
     if not mp4_path.name.endswith("-main.mp4"):
@@ -174,18 +222,23 @@ def merge_mp4_with_overlay(mp4_path: Path, png_path: Path) -> Path:
             f"MP4 filename must end with '-main.mp4', got: {mp4_path.name}"
         )
 
-    combined_path = mp4_path.parent / mp4_path.name.replace("-main.mp4", "-combined.mp4")
+    combined_path = mp4_path.parent / mp4_path.name.replace(
+        "-main.mp4", "-combined.mp4"
+    )
 
     # Check if combined file already exists
     if combined_path.exists():
-        print(f"Combined video already exists: {combined_path.name}, skipping merge")
+        print(
+            f"Combined video already exists: "
+            f"{combined_path.name}, skipping merge"
+        )
         return combined_path
 
     # Find ffmpeg dependency
     try:
         ffmpeg_path = find_dependency("ffmpeg")
     except DependencyError:
-        raise # Re-raise to be handled by caller
+        raise  # Re-raise to be handled by caller
 
     video = None
     overlay = None
@@ -197,9 +250,13 @@ def merge_mp4_with_overlay(mp4_path: Path, png_path: Path) -> Path:
             video_width, video_height = video.size
 
             if video_width <= 0 or video_height <= 0:
-                raise VideoProcessingError(f"Invalid video dimensions: {video_width}x{video_height}")
+                raise VideoProcessingError(
+                    f"Invalid video dimensions: {video_width}x{video_height}"
+                )
         except Exception as e:
-            raise VideoProcessingError(f"Failed to read video dimensions from {mp4_path.name}: {e}.")
+            raise VideoProcessingError(
+                f"Failed to read video dimensions from {mp4_path.name}: {e}."
+            )
         finally:
             if video:
                 try:
@@ -210,7 +267,10 @@ def merge_mp4_with_overlay(mp4_path: Path, png_path: Path) -> Path:
         # Resize png file to mp4 dimensions
         try:
             overlay = Image.open(png_path)
-            overlay = overlay.resize((video_width, video_height), Image.LANCZOS)
+            overlay = overlay.resize(
+                (video_width, video_height),
+                Image.LANCZOS
+            )
             overlay.save(png_path, "PNG")
         except Exception as e:
             raise VideoProcessingError(
@@ -226,27 +286,37 @@ def merge_mp4_with_overlay(mp4_path: Path, png_path: Path) -> Path:
 
         cmd = [
             ffmpeg_path,
-            "-i", mp4_path,      # Input video
+            "-i", mp4_path,     # Input video
 
-            "-i", png_path,      # Input overlay
-            "-filter_complex", "[0:v][1:v]overlay=0:0",  # Overlay at position 0,0
+            "-i", png_path,     # Input overlay
+            "-filter_complex",
+            "[0:v][1:v]overlay=0:0",  # Overlay at position 0,0
             "-codec:a", "copy",       # Copy audio without re-encoding
             "-y",                     # Overwrite output file
             str(combined_path)
         ]
 
         try:
-            result = subprocess.run(cmd, capture_output=True, text=True, timeout=300)
+            result = subprocess.run(
+                cmd, capture_output=True, text=True, timeout=300
+            )
             if result.returncode != 0:
-                raise VideoProcessingError(f"FFmpeg failed for {mp4_path.name}: {result.stderr}")
+                raise VideoProcessingError(
+                    f"FFmpeg failed for {mp4_path.name}: {result.stderr}"
+                )
         except subprocess.TimeoutExpired:
-            raise VideoProcessingError(f"FFmpeg timed out processing {mp4_path.name} (exceeded 5 minutes)")
+            raise VideoProcessingError(
+                f"FFmpeg timed out processing "
+                f"{mp4_path.name} (exceeded 5 minutes)"
+            )
         except Exception as e:
             raise VideoProcessingError(f"FFmpeg error: {e}")
 
         # Verify file was created
         if not combined_path.exists():
-            raise VideoProcessingError("Combined video was not created")
+            raise VideoProcessingError(
+                "Combined video was not created"
+            )
 
         # Verify output file not empty
         if combined_path.stat().st_size == 0:
@@ -256,7 +326,10 @@ def merge_mp4_with_overlay(mp4_path: Path, png_path: Path) -> Path:
         try:
             os.remove(png_path)
         except OSError as e:
-            print(f"Warning: Could not delete overlay PNG {png_path.name}: {e}")
+            print(
+                f"Warning: Could not delete overlay PNG "
+                f"{png_path.name}: {e}"
+            )
 
         return combined_path
 
@@ -265,6 +338,8 @@ def merge_mp4_with_overlay(mp4_path: Path, png_path: Path) -> Path:
         raise
     except Exception as e:
         # Catch any unexpected errors
-        raise VideoProcessingError(f"Unexpected error merging video with overlay: {e}")
+        raise VideoProcessingError(
+            f"Unexpected error merging video with overlay: {e}"
+        )
 
 # =========================================================================== #
