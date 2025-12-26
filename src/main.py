@@ -1,15 +1,12 @@
 import traceback
 import sys
 
-from .exceptions import *
-from .validators import *
-from .dependencies import *
-from .parsers import *
-from .metadata import *
-from .media_processing import *
-from .downloaders import *
+from .exceptions import InvalidInputFileError, ParseError
+from .parsers import parse_html, parse_snapchat_memories
+from .downloaders import memory_download
 
 # =========================================================================== #
+
 
 def main():
 

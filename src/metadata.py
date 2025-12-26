@@ -1,6 +1,6 @@
 from datetime import datetime
-from .dependencies import *
-from .exceptions import *
+from .dependencies import find_dependency
+from .exceptions import DependencyError, MemorEasyError
 from pathlib import Path
 import subprocess
 import os
@@ -12,13 +12,16 @@ Change the "modified date" in EXIF section to "created date" value
 
 Args:
     path: File path of the file/directory to be edited
-    date_time_str: Date to be written to file in format "YYYY-MM-DD HH:MM:SS" in UTC
+    date_time_str: Date to be written to file in format
+      "YYYY-MM-DD HH:MM:SS" in UTC
 
 Raises:
     FileNotFoundError: If path doesn't exist
     ValueError: If date_time_str format is invalid
     OSError: If timestamp cannot be set (permissions, etc)
 """
+
+
 def set_file_timestamp(path, date_time_str) -> None:
 
     if isinstance(path, str):
@@ -42,8 +45,6 @@ def set_file_timestamp(path, date_time_str) -> None:
     except (ValueError, OSError) as e:
         raise ValueError(f"Cannot convert date to timestamp: {e}")
 
-
-
     # Set access and modified times
     try:
         os.utime(path, (ts, ts))
@@ -54,6 +55,7 @@ def set_file_timestamp(path, date_time_str) -> None:
         )
 
 # =========================================================================== #
+
 
 """
 Write EXIF metadata to image or video file
@@ -70,20 +72,31 @@ Raises:
     ValueError: If coordinates are invalid
     MemorEasyError: If exiftool fails
 """
-def write_exif(file_path: Path, date_time_str: str, lat: str, lon: str) -> None:
+
+
+def write_exif(
+        file_path: Path,
+        date_time_str: str,
+        lat: str, lon: str
+) -> None:
 
     if isinstance(file_path, str):
         file_path = Path(file_path)
 
     if not file_path.exists():
-        raise FileNotFoundError(f"File not found: {file_path}")
+        raise FileNotFoundError(
+            f"File not found: {file_path}"
+        )
 
     # Get extension and skip if unsupported
     ext = file_path.suffix.lower()
 
     # Blank ext accounts for directories/folders
     if ext not in ['', '.jpg', '.jpeg', '.mp4', '.png']:
-        print(f"Skipping EXIF for {file_path} for unsupported format: {ext}")
+        print(
+            f"Skipping EXIF for {file_path} "
+            f"for unsupported format: {ext}"
+        )
         return
 
     if ext == '.jpeg':
@@ -104,7 +117,10 @@ def write_exif(file_path: Path, date_time_str: str, lat: str, lon: str) -> None:
             raise ValueError(f"Longitude {lon_f} out of range [-180, 180]")
 
     except Exception as e:
-        raise ValueError(f"Invalid coordinates for '{file_path}' ({lat}, {lon}). Skipping EXIF: {e}.")
+        raise ValueError(
+            f"Invalid coordinates for '{file_path}' "
+            f"({lat}, {lon}). Skipping EXIF: {e}."
+        )
 
     # Base command with common tags
     cmd = [
@@ -144,15 +160,23 @@ def write_exif(file_path: Path, date_time_str: str, lat: str, lon: str) -> None:
             result = subprocess.run(cmd, capture_output=True, text=True)
 
             if result.returncode != 0:
-                print(f"Exiftool error for {file_path}: {result.stderr.strip()}")
+                print(
+                    f"Exiftool error for {file_path}: "
+                    f"{result.stderr.strip()}"
+                )
 
     except Exception as e:
-        raise MemorEasyError(f"Exiftool failed for {file_path}: {e}")
+        raise MemorEasyError(
+            f"Exiftool failed for {file_path}: {e}"
+        )
 
     try:
         set_file_timestamp(file_path, date_time_str[:-4])
 
     except Exception as e:
-        print(f"Warning: Could not set modified-date timestamp for {file_path}: {e}.")
+        print(
+            f"Warning: Could not set modified-date "
+            f"timestamp for {file_path}: {e}."
+        )
 
 # =========================================================================== #

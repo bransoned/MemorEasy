@@ -1,7 +1,19 @@
-from .media_processing import *
-from .exceptions import *
+from .media_processing import (
+    merge_mp4_with_overlay,
+    merge_jpg_with_overlay
+)
+from .metadata import (
+    write_exif,
+    set_file_timestamp
+)
+from .exceptions import (
+    ZipExtractionError,
+    DownloadError,
+    VideoProcessingError,
+    ImageProcessingError,
+    DependencyError
+)
 from pathlib import Path
-from .metadata import *
 import requests
 import shutil
 import time
@@ -21,17 +33,24 @@ Raises:
     FileNotFoundError: If ZIP file doesn't exist
     ZipExtractionError: If extraction or processing fails
 """
-def handle_zip(filepath: Path, name: str, memory: dict[str, str, str, str, str]) -> None:
+
+
+def handle_zip(
+    filepath: Path,
+    name: str,
+    memory: dict[str, str],
+) -> None:
 
     if not filepath.exists():
         raise FileNotFoundError(f"ZIP file not found: {filepath}")
-
 
     # Create folder path for extracted files
     new_folder = Path(f"./memories/{name}")
 
     if new_folder.exists():
-        print(f"Folder already exists: {new_folder.name}, skipping extraction")
+        print(
+            f"Folder already exists: {new_folder.name}, skipping extraction"
+        )
 
     # Create folder
     try:
@@ -54,7 +73,9 @@ def handle_zip(filepath: Path, name: str, memory: dict[str, str, str, str, str])
     try:
         os.remove(filepath)
     except OSError as e:
-        print(f"Warning: Could not delete ZIP file {filepath.name}: {e}")
+        print(
+            f"Warning: Could not delete ZIP file {filepath.name}: {e}"
+        )
 
     # Track what files we found
     main_mp4 = None
@@ -92,17 +113,23 @@ def handle_zip(filepath: Path, name: str, memory: dict[str, str, str, str, str])
                     new_path = new_folder / new_name
                     file.rename(new_path)
                 except OSError as e:
-                    print(f"Warning: Could not rename {old_name} to {new_name}: {e}")
+                    print(
+                         f"Warning: Could not rename {old_name} "
+                         f"to {new_name}: {e}"
+                    )
                     continue
 
         # Verify we found expected files
         if not main_mp4 and not main_jpg:
             raise ZipExtractionError(
                 f"No main media file found in {filepath.name}. "
-                f"Exprected file ending with '-main.mp4' or '-main.jpg'"
+                f"Expected file ending with '-main.mp4' or '-main.jpg'"
             )
         if not overlay_png:
-            print(f"Warning: No overlay PNG found in {filepath.name}")
+            print(
+                f"Warning: No overlay PNG found in "
+                f"{filepath.name}"
+            )
 
         # Get Memory metadata values
         date_str = memory["date"]
@@ -111,9 +138,15 @@ def handle_zip(filepath: Path, name: str, memory: dict[str, str, str, str, str])
 
         # Make sure valid metadata
         if not date_str:
-            raise ValueError("Date string not found in Memory {filepath.name}.")
+            raise ValueError(
+                 f"Date string not found in Memory "
+                 f"{filepath.name}."
+            )
         if not lat or not lon:
-            raise ValueError("GPS coordinates not found in Memory {filepath.name}.")
+            raise ValueError(
+                f"GPS coordinates not found in Memory "
+                f"{filepath.name}."
+            )
 
         # Process MP4 if found
         if main_mp4 and main_mp4.exists():
@@ -123,15 +156,23 @@ def handle_zip(filepath: Path, name: str, memory: dict[str, str, str, str, str])
 
                 if overlay_png and overlay_png.exists():
                     try:
-                        combined_path = merge_mp4_with_overlay(main_mp4, overlay_png)
+                        combined_path = merge_mp4_with_overlay(
+                            main_mp4, overlay_png
+                        )
                         write_exif(combined_path, date_str, lat, lon)
                     except (VideoProcessingError, DependencyError) as e:
-                        print(f"Warning: Failed to merge MP4 with overlay: {e}")
+                        print(
+                            f"Warning: Failed to merge MP4 with overlay: {e}"
+                        )
                     except Exception as e:
-                        print(f"Warning: Unexpected error merging MP4: {e}")
+                        print(
+                            f"Warning: Unexpected error merging MP4: {e}"
+                        )
 
             except Exception as e:
-                print(f"Warning: Failed to process MP4: {e}")
+                print(
+                    f"Warning: Failed to process MP4: {e}"
+                )
 
         # Process JPG if found
         if main_jpg and main_jpg.exists():
@@ -141,29 +182,40 @@ def handle_zip(filepath: Path, name: str, memory: dict[str, str, str, str, str])
 
                 if overlay_png and overlay_png.exists():
                     try:
-                        combined_path = merge_jpg_with_overlay(main_jpg, overlay_png)
+                        combined_path = merge_jpg_with_overlay(
+                            main_jpg, overlay_png
+                        )
                         write_exif(combined_path, date_str, lat, lon)
                     except ImageProcessingError as e:
-                        print(f"Warning: Failed to merge JPG with overlay: {e}")
+                        print(
+                            f"Warning: Failed to merge JPG with overlay: {e}"
+                        )
                     except Exception as e:
-                        print(f"Warning: Unexpected error merging JPG: {e}")
+                        print(
+                            f"Warning: Unexpected error merging JPG: {e}"
+                        )
 
             except Exception as e:
-                print(f"Warning: Failed to process JPG: {e}")
+                print(
+                    f"Warning: Failed to process JPG: {e}"
+                )
 
         # Set folder timestamp to match content
-        try: # not sure this is right
+        try:  # not sure this is right
             timestamp_date = date_str.replace(" UTC", "").strip()
             set_file_timestamp(new_folder, timestamp_date)
         except Exception as e:
-            print(f"Warning: Could not set folder timestamp: {e}")
+            print(
+                f"Warning: Could not set folder timestamp: {e}"
+            )
 
     except ZipExtractionError:
-        # Re-raise our custom errors
+        #  Re-raise our custom errors
         raise
     except Exception as e:
-        # Catch unexpected errors
+        #  Catch unexpected errors
         raise ZipExtractionError(f"Failed to process extracted files: {e}")
+
 
 # =========================================================================== #
 
@@ -178,7 +230,11 @@ Raises:
     DownloadError: If download fails
     NetworkError: If network connection fails
 """
-def memory_download(memories: list[dict[str, str, str, str, str]]) -> None:
+
+
+def memory_download(
+    memories: list[dict[str, str]],
+) -> None:
 
     total_files = len(memories)
     if not memories or total_files <= 0:
@@ -219,20 +275,27 @@ def memory_download(memories: list[dict[str, str, str, str, str]]) -> None:
             name = date_str.replace(" ", "-")[:-4]
             name = name.replace(":", "")
         except Exception as e:
-            print(f"\nMemory {idx}: Invalid date format '{date_str}', skipping")
+            print(
+                f"\nMemory {idx}: Invalid date format '{date_str}', skipping"
+                 )
             failed_downloads.append((idx, f"Invalid date: {e}"))
             continue
 
         # Implement retries if a download fails
         max_retries = 3
-        retry_delay = 2 # seconds
+        retry_delay = 2  # seconds
 
         for attempt in range(0, max_retries):
             try:
-                print(f"\rDownloading {idx + 1}/{total_files}: {name}...", end="", flush=True)
+                print(
+                    f"\rDownloading {idx + 1}/{total_files}: {name}...",
+                    end="",
+                    flush=True
+                )
 
                 with requests.get(url, stream=True, timeout=30) as r:
-                    r.raise_for_status() # Raise exception for 4xx/5xx status codes
+                    # Raise exception for 4xx/5xx status codes
+                    r.raise_for_status()
 
                     # Determine file extension from Content-Type header
                     content_type = r.headers.get("Content-Type", "").lower()
@@ -245,29 +308,38 @@ def memory_download(memories: list[dict[str, str, str, str, str]]) -> None:
                     elif "zip" in content_type:
                         ext = ".zip"
                     else:
-                        print(f"Memory {idx}: Unknown file type '{content_type}', skipping\n")
-                        failed_downloads.append((idx, f"Unknown type: {content_type}"))
+                        print(
+                            f"Memory {idx}: Unknown Content-Type"
+                            f"'{content_type}', skipping\n"
+                        )
+                        failed_downloads.append(
+                            (idx, f"Unknown type: {content_type}")
+                            )
                         break
 
                     filepath = out_dir / f"{name}{ext}"
                     filepath_no_ext = out_dir / name
 
                     if filepath.exists() or filepath_no_ext.exists():
-                        print(f"\nMemory {idx}: File already exists, skipping\n")
+                        print(
+                            f"\nMemory {idx}: File already exists, skipping\n"
+                        )
                         download_count += 1
                         break
 
                     try:
                         with open(filepath, 'wb') as f:
-                            for chunk in r.iter_content(chunk_size=8192): # 8 KB chunks
-                                if chunk: # filter out keep-alive new chunks
+                            # 8 KB chunks
+                            for chunk in r.iter_content(chunk_size=8192):
+                                if chunk:  # filter out keep-alive new chunks
                                     f.write(chunk)
                     except OSError as e:
                         raise DownloadError(f"Failed to write file: {e}")
 
                     if not filepath.exists() or filepath.stat().st_size == 0:
-                        raise DownloadError("Downloaded file is empty or missing\n")
-
+                        raise DownloadError(
+                            "Downloaded file is empty or missing\n"
+                        )
 
                 # Process the downloaded file
                 try:
@@ -277,7 +349,9 @@ def memory_download(memories: list[dict[str, str, str, str, str]]) -> None:
                         write_exif(filepath, date_str, lat, lon)
 
                 except Exception as e:
-                    print(f"\nMemory {idx}: Post-processing failed: {e}\n")
+                    print(
+                        f"\nMemory {idx}: Post-processing failed: {e}\n"
+                    )
 
                 # successful download and processing, move onto next file
                 download_count += 1
@@ -285,48 +359,77 @@ def memory_download(memories: list[dict[str, str, str, str, str]]) -> None:
 
             except requests.exceptions.Timeout:
                 if attempt < max_retries:
-                    print(f"\nMemory {idx}: Timeout, retrying ({attempt}/{max_retries})...\n")
+                    print(
+                        f"\nMemory {idx}: Timeout, retrying "
+                        f"({attempt}/{max_retries})...\n"
+                    )
                     time.sleep(retry_delay)
                 else:
-                    print(f"\nMemory {idx}: Timeout after {max_retries} attempts, skipping\n")
+                    print(
+                        f"\nMemory {idx}: Timeout after {max_retries} "
+                        f" attempts, skipping\n"
+                    )
                     failed_downloads.append((idx, "Timeout"))
 
             except requests.exceptions.ConnectionError:
                 if attempt < max_retries:
-                    print(f"\nMemory {idx}: Connection error, retrying ({attempt}/{max_retries})...\n")
+                    print(
+                        f"\nMemory {idx}: Connection error, retrying "
+                        f"({attempt}/{max_retries})...\n"
+                    )
                     time.sleep(retry_delay)
                 else:
-                    print(f"\nMemory {idx}: Connection failed after {max_retries} attempts, skipping\n")
+                    print(
+                        f"\nMemory {idx}: Connection failed after "
+                        f" {max_retries} attempts, skipping\n"
+                    )
                     failed_downloads.append((idx, "Connection error"))
 
             except requests.exceptions.HTTPError as e:
                 # Don't retry on 404, 403, etc.
 
-                # Retry on server errors. This seems to be most prevalent error when downloading
+                # Retry on server errors.
+                # This seems to be most prevalent error when downloading
                 status = e.response.status_code
                 if 500 <= status < 600:
                     if attempt < max_retries:
-                        print(f"\nMemory {idx}: Server error {status}, retry attempt {attempt}/{max_retries}")
+                        print(
+                            f"\nMemory {idx}: Server error {status}, "
+                            f"retry attempt {attempt}/{max_retries}"
+                        )
                         time.sleep(retry_delay)
                         continue
 
-                print(f"\nMemory {idx}: HTTP error {e.response.status_code}, skipping\n")
-                failed_downloads.append((idx, f"HTTP {e.response.status_code}"))
+                print(
+                    f"\nMemory {idx}: HTTP error "
+                    f"{e.response.status_code}, skipping\n"
+                )
+                failed_downloads.append(
+                    (idx, f"HTTP {e.response.status_code}")
+                )
                 break
 
             except requests.exceptions.RequestException as e:
-                print(f"\nMemory {idx}: Download failed: {e}, skipping\n")
+                print(
+                    f"\nMemory {idx}: Download failed: {e}, "
+                    f"skipping\n"
+                )
                 failed_downloads.append((idx, str(e)))
                 break
 
             except Exception as e:
-                print(f"\nMemory {idx}: Unexpected error: {e}, skipping\n")
+                print(
+                    f"\nMemory {idx}: Unexpected error: {e}, "
+                    f"skipping\n"
+                )
                 failed_downloads.append((idx, str(e)))
                 break
 
     # Final summary
     print(f"\n\n{'='*50}")
-    print(f"Successfully downloaded: {download_count}/{total_files}")
+    print(
+        f"Successfully downloaded: {download_count}/{total_files}"
+    )
 
     if failed_downloads:
         print(f"Failed downloads: {len(failed_downloads)}")
