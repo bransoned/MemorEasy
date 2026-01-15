@@ -1,4 +1,4 @@
-from datetime import datetime
+from datetime import datetime, timezone
 from .dependencies import find_dependency
 from .exceptions import DependencyError, MemorEasyError
 from pathlib import Path
@@ -33,6 +33,7 @@ def set_file_timestamp(path, date_time_str) -> None:
     # Validate and parse date string
     try:
         dt = datetime.strptime(date_time_str, "%Y-%m-%d %H:%M:%S")
+        dt = dt.replace(tzinfo=timezone.utc)
     except ValueError as e:
         raise ValueError(
             f"Invalid date format '{date_time_str}'."
