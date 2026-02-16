@@ -285,7 +285,7 @@ def memory_download(
         max_retries = 3
         retry_delay = 2  # seconds
 
-        for attempt in range(0, max_retries):
+        for attempt in range(1, max_retries + 1):
             try:
                 print(
                     f"\rDownloading {idx + 1}/{total_files}: {name}...",
@@ -360,8 +360,8 @@ def memory_download(
             except requests.exceptions.Timeout:
                 if attempt < max_retries:
                     print(
-                        f"\nMemory {idx}: Timeout, retrying "
-                        f"({attempt}/{max_retries})...\n"
+                        f"\nMemory {idx}: Timeout on attempt "
+                        f"({attempt}/{max_retries}), retrying...\n"
                     )
                     time.sleep(retry_delay)
                 else:
@@ -374,8 +374,8 @@ def memory_download(
             except requests.exceptions.ConnectionError:
                 if attempt < max_retries:
                     print(
-                        f"\nMemory {idx}: Connection error, retrying "
-                        f"({attempt}/{max_retries})...\n"
+                        f"\nMemory {idx}: Connection error on attempt "
+                        f"({attempt}/{max_retries}), retrying...\n"
                     )
                     time.sleep(retry_delay)
                 else:
@@ -394,8 +394,8 @@ def memory_download(
                 if 500 <= status < 600:
                     if attempt < max_retries:
                         print(
-                            f"\nMemory {idx}: Server error {status}, "
-                            f"retry attempt {attempt}/{max_retries}"
+                            f"\nMemory {idx}: Server error {status} on attempt "
+                            f"({attempt}/{max_retries}), retrying...\n"
                         )
                         time.sleep(retry_delay)
                         continue
