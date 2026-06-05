@@ -133,9 +133,13 @@ TODO Add built with images
       **NOTE:** This will not export your My Eyes Only folder. This must be done manually in the app.
     - Ensure that the date range you want selected is correct. We recommend toggling date selection off to query all Memories on your account if this is
       your first time exporting Memories and/or running this script.
-    - Lastly, when delivered the zip file from Snapchat with your data, unzip and find the `memories_history.html` file. MemorEasy will parse this file
-      for all of the information needed to import your Memories.
-    - TODO Add images or a GIF showing process of selecting data.  
+    - Next, you will be sent an email with a download link to a list of ZIP files (number of ZIPs depends on how many files you have). Download all of these files to the same location.
+    - Extract the first folder (the one with no number), this contains the oldest set of memories along with the necessary `memories_history.html` file.
+    - Now, extract the following ZIP files to the folder that was created when you extracted the first folder. This should put all of your downloaded memories
+      in one large file labeled "memories". You know you are doing this correctly if you are prompted about a duplicate file `memories.html`. You can just skip or overwrite, it doesn't matter.
+      ensure, however, that once all ZIPs have been extracted, you delete these HTML files and contain only JPG, MP4, or PNG files in the `memories` directory.
+    - Find the other folder labeled "html" and copy the file up a level so that the HTML file and the `memories` directory are both in the same parent directory.
+    - Steps in video format can be found in [this video](https://youtu.be/ioA1UjJznxI). If you have any problems setting up, please open an issue.
 <!--2. Confirm that [Python](https://www.python.org/downloads/) is installed on your system.-->
 
 ### Quick Start (Recommended)
@@ -152,7 +156,8 @@ TODO Add built with images
 3. Move the downloaded executable/binary to the folder or directory where you want the images to be downloaded
    - Windows Example: Move `MemorEasy.exe` to `C:\Users\username\Pictures\`
    - Linux/macOS Example: Move `MemorEasy-Linux` or `MemorEasy-macOS` to `~/Pictures/`
-4. Place the `memories_history.html` file in the same folder or directory as the executable/binary file
+4. Place the `memories_history.html` file and the `memories` directory from Step 1 in the same folder or directory as the executable/binary file
+5. Continue down this page for instructions on running the program.
 
 ### Installation from Source (Advanced)
 
@@ -192,7 +197,7 @@ TODO Add built with images
     - Run the script by double clicking the file if in a graphical interface or if in terminal by running `./MemorEasy.exe` or `./MemorEasy-OS_Name`
     - A shell or terminal window should appear and show current progress of downloads
     - MemorEasy will generate a `memories/` folder that will contain all of the organized JPGs, MP4s, and folders with your images
-  
+
 
 2. For Installation from Source:
     - Once the required libraries, dependencies, and user-specific `memories_history.html` file are installed and copied into the directory, you can run the script
