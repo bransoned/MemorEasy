@@ -4,7 +4,7 @@ import sys
 from .exceptions import InvalidInputFileError, ParseError
 from .parsers import parse_html, parse_snapchat_memories
 from .downloaders import memory_download
-
+from .files import scan_memories
 # =========================================================================== #
 
 
@@ -22,7 +22,7 @@ def main():
     try:
         html_text = parse_html()
         memories = parse_snapchat_memories(html_text)
-        memory_download(memories)
+        scan_memories(memories)
         input("\nPress Enter to exit...")
 
     except InvalidInputFileError as e:
