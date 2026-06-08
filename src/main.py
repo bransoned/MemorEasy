@@ -3,7 +3,6 @@ import sys
 
 from .exceptions import InvalidInputFileError, ParseError
 from .parsers import parse_html, parse_snapchat_memories
-from .downloaders import memory_download
 from .files import scan_memories
 # =========================================================================== #
 

@@ -4,7 +4,6 @@ from .media_processing import (
 )
 from .metadata import (
     write_exif,
-    set_file_timestamp
 )
 from .exceptions import (
     ZipExtractionError,
@@ -14,14 +13,11 @@ from .exceptions import (
     DependencyError
 )
 from pathlib import Path
-import requests
-import shutil
-import time
 import os
 import datetime
-import re
 
 # =========================================================================== #
+
 
 def parse_filename_datetime(filename: str) -> datetime.datetime:
 
@@ -31,11 +27,13 @@ def parse_filename_datetime(filename: str) -> datetime.datetime:
 
     return datestamp.replace(tzinfo=datetime.timezone.utc)
 
+
 def parse_metadata_datetime(date_str: str) -> datetime.datetime:
 
     clean_date = date_str.replace("UTC", "").strip()
     dt = datetime.datetime.strptime(clean_date, "%Y-%m-%d %H:%M:%S")
     return dt.replace(tzinfo=datetime.timezone.utc)
+
 
 def scan_memories(
     memories: list[dict[str, str]],
@@ -102,9 +100,10 @@ def scan_memories(
                 # Format: "2025-12-09 11:10:51 UTC" -> "2025-12-09-111051"
                 name = date_str.replace(" ", "-")[:-4]
                 name = name.replace(":", "")
-            except Exception as e:
+            except DownloadError as e:
                 print(
-                    f"\nMemory {idx}: Invalid date format '{date_str}', skipping"
+                    f"\nMemory {mem_idx}: Invalid date format '{date_str}',\
+                        skipping: {e}"
                      )
                 continue
 
