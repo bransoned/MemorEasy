@@ -114,7 +114,7 @@ jobs:
         if: runner.os == 'Windows'
         shell: pwsh
         run: |
-          curl -L https://sourceforge.net/projects/exiftool/files/exiftool-13.43_64.zip/download -o exiftool.zip
+          curl -L https://sourceforge.net/projects/exiftool/files/exiftool-13.59_64.zip/download -o exiftool.zip
           mkdir bin
           Expand-Archive exiftool.zip exiftool_temp -Force
           $inner = Get-ChildItem exiftool_temp -Directory | Select-Object -First 1
