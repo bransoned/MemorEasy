@@ -23,7 +23,7 @@ def parse_filename_datetime(filename: str) -> datetime.datetime:
 
     path = "memories/" + filename
     timestamp = os.path.getmtime(path)
-    datestamp = datetime.datetime.fromtimestamp(timestamp)
+    datestamp = datetime.datetime.fromtimestamp(timestamp, tz=datetime.timezone.utc)
 
     return datestamp.replace(tzinfo=datetime.timezone.utc)
 
