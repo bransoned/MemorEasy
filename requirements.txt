@@ -2,3 +2,4 @@ beautifulsoup4
 requests
 pillow
 moviepy
+timezonefinder

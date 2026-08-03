@@ -123,28 +123,11 @@ def parse_snapchat_memories(
                     skipped_count += 1
                     continue
 
-            # Extract URL from onclick attribute
-            link_tag = cells[3].find("a")
-            link = None
-
-            if link_tag and "onclick" in link_tag.attrs:
-
-                onclick = link_tag["onclick"]
-
-                # Format: downloadMemories('URL', this, true)
-                match = re.search(r"downloadMemories\('([^']+)'", onclick)
-                if match:
-                    link = match.group(1)
-
-            if not link:
-                skipped_count += 1
-
             memories.append({
                 "date": date_str,
                 "type": media_type,
                 "lat": lat,
                 "lon": lon,
-                "url": link
             })
 
         # Skip any malformed rows that throw error

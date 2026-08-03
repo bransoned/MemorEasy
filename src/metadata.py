@@ -5,6 +5,51 @@ from pathlib import Path
 import subprocess
 import os
 
+from zoneinfo import ZoneInfo
+from timezonefinder import TimezoneFinder
+
+# =========================================================================== #
+
+"""
+Convert UTC datetime string to timezone-aware local datetime
+using GPS coordinates.
+"""
+def utc_str_to_local_dt(
+    utc_str: str,
+    lat: float,
+    lon: float,
+    fmt: str = "%Y-%m-%d %H:%M:%S",
+) -> datetime:
+
+    tf = TimezoneFinder()
+
+    utc_dt = datetime.strptime(utc_str, fmt).replace(tzinfo=timezone.utc)
+
+    tz_name = tf.timezone_at(lat=lat, lng=lon)
+    if not tz_name:
+        # Fallback to UTC if timezone cannot be determined
+        return utc_dt
+
+    return utc_dt.astimezone(ZoneInfo(tz_name))
+
+
+# =========================================================================== #
+
+"""
+Return EXIF offset string like '+05:30' or '-04:00'
+from a timezone-aware datetime.
+"""
+
+def offset_str_from_dt(dt: datetime) -> str:
+    offset = dt.utcoffset()
+    if offset is None:
+        return "+00:00"
+
+    total_minutes = int(offset.total_seconds() // 60)
+    sign = "+" if total_minutes >= 0 else "-"
+    hours, minutes = divmod(abs(total_minutes), 60)
+    return f"{sign}{hours:02d}:{minutes:02d}"
+
 # =========================================================================== #
 
 """
@@ -22,7 +67,7 @@ Raises:
 """
 
 
-def set_file_timestamp(path, date_time_str) -> None:
+def set_file_timestamp(path, local_dt) -> None:
 
     if isinstance(path, str):
         path = Path(path)
@@ -30,19 +75,24 @@ def set_file_timestamp(path, date_time_str) -> None:
     if not path.exists():
         raise FileNotFoundError(f"Path does not exist: {path}")
 
+    if local_dt.tzinfo is None:
+        raise ValueError("local_dt must be timezone-aware")
+
     # Validate and parse date string
-    try:
-        dt = datetime.strptime(date_time_str, "%Y-%m-%d %H:%M:%S")
-        dt = dt.replace(tzinfo=timezone.utc)
-    except ValueError as e:
-        raise ValueError(
-            f"Invalid date format '{date_time_str}'."
-            f"Expected 'YYYY-MM-DD HH:MM:SS'. Error: {e}"
-        )
+#    try:
+#        ts = local_dt.timestamp()
+#        dt = datetime.strptime(date_time_str, "%Y-%m-%d %H:%M:%S")
+#        dt = dt.replace(tzinfo=timezone.utc)
+#    except ValueError as e:
+#        raise ValueError(
+#            f"Invalid date format '{date_time_str}'."
+#            f"Expected 'YYYY-MM-DD HH:MM:SS'. Error: {e}"
+#            raise ValueError(f"Cannot convert datetime to timestamp: {e}")
+#        )
 
     # Convert to timestamp
     try:
-        ts = dt.timestamp()
+        ts = local_dt.timestamp()
     except (ValueError, OSError) as e:
         raise ValueError(f"Cannot convert date to timestamp: {e}")
 
@@ -123,12 +173,13 @@ def write_exif(
             f"({lat}, {lon}). Skipping EXIF: {e}."
         )
 
+    local_dt = utc_str_to_local_dt(date_time_str[:-4], lat_f, lon_f)
+    local_dt_str = local_dt.strftime("%Y-%m-%d %H:%M:%S")
+    offset_str = offset_str_from_dt(local_dt)
+
     # Base command with common tags
     cmd = [
         exiftool_path,
-        f"-CreateDate={date_time_str}",
-        f"-ModifyDate={date_time_str}",
-        f"-DateTimeOriginal={date_time_str}",
         f"-XMP:GPSLatitude={lat}",
         f"-XMP:GPSLongitude={lon}",
     ]
@@ -136,16 +187,22 @@ def write_exif(
     # Add format-specific MD tags
     if ext == ".mp4":
         cmd.extend([
-            f"-TrackCreateDate={date_time_str}",
-            f"-TrackModifyDate={date_time_str}",
-            f"-MediaCreateDate={date_time_str}",
-            f"-MediaModifyDate={date_time_str}",
+            f"-TrackCreateDate={date_time_str[:-4]}",
+            f"-TrackModifyDate={date_time_str[:-4]}",
+            f"-MediaCreateDate={date_time_str[:-4]}",
+            f"-MediaModifyDate={date_time_str[:-4]}",
             f"-Keys:GPSCoordinates={lat} {lon}",
         ])
     elif ext == '.jpg':
         lat_ref = "N" if float(lat) >= 0 else "S"
         lon_ref = "E" if float(lon) >= 0 else "W"
         cmd.extend([
+            f"-CreateDate={local_dt_str}",
+            f"-ModifyDate={local_dt_str}",
+            f"-DateTimeOriginal={local_dt_str}",
+            f"-OffsetTime={offset_str}",
+            f"-OffsetTimeOriginal={offset_str}",
+            f"-OffsetTimeDigitized={offset_str}",
             f"-GPSLatitude={abs(float(lat))}",
             f"-GPSLatitudeRef={lat_ref}",
             f"-GPSLongitude={abs(float(lon))}",
@@ -172,7 +229,7 @@ def write_exif(
         )
 
     try:
-        set_file_timestamp(file_path, date_time_str[:-4])
+        set_file_timestamp(file_path, local_dt)
 
     except Exception as e:
         print(
@@ -180,4 +237,4 @@ def write_exif(
             f"timestamp for {file_path}: {e}."
         )
 
-# =========================================================================== #
+# ===========================================================================
