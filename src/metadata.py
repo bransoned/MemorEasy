@@ -180,12 +180,6 @@ def write_exif(
     # Base command with common tags
     cmd = [
         exiftool_path,
-        f"-CreateDate={local_dt_str}",
-        f"-ModifyDate={local_dt_str}",
-        f"-DateTimeOriginal={local_dt_str}",
-        f"-OffsetTime={offset_str}",
-        f"-OffsetTimeOriginal={offset_str}",
-        f"-OffsetTimeDigitized={offset_str}",
         f"-XMP:GPSLatitude={lat}",
         f"-XMP:GPSLongitude={lon}",
     ]
@@ -193,16 +187,22 @@ def write_exif(
     # Add format-specific MD tags
     if ext == ".mp4":
         cmd.extend([
-            f"-TrackCreateDate={local_dt_str}",
-            f"-TrackModifyDate={local_dt_str}",
-            f"-MediaCreateDate={local_dt_str}",
-            f"-MediaModifyDate={local_dt_str}",
+            f"-TrackCreateDate={date_time_str[:-4]}",
+            f"-TrackModifyDate={date_time_str[:-4]}",
+            f"-MediaCreateDate={date_time_str[:-4]}",
+            f"-MediaModifyDate={date_time_str[:-4]}",
             f"-Keys:GPSCoordinates={lat} {lon}",
         ])
     elif ext == '.jpg':
         lat_ref = "N" if float(lat) >= 0 else "S"
         lon_ref = "E" if float(lon) >= 0 else "W"
         cmd.extend([
+            f"-CreateDate={local_dt_str}",
+            f"-ModifyDate={local_dt_str}",
+            f"-DateTimeOriginal={local_dt_str}",
+            f"-OffsetTime={offset_str}",
+            f"-OffsetTimeOriginal={offset_str}",
+            f"-OffsetTimeDigitized={offset_str}",
             f"-GPSLatitude={abs(float(lat))}",
             f"-GPSLatitudeRef={lat_ref}",
             f"-GPSLongitude={abs(float(lon))}",
