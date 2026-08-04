@@ -1,5 +1,4 @@
 from datetime import datetime, timezone
-from .dependencies import find_dependency
 from .exceptions import DependencyError, MemorEasyError
 from pathlib import Path
 import subprocess
@@ -79,18 +78,6 @@ def set_file_timestamp(path, local_dt) -> None:
     if local_dt.tzinfo is None:
         raise ValueError("local_dt must be timezone-aware")
 
-    # Validate and parse date string
-#    try:
-#        ts = local_dt.timestamp()
-#        dt = datetime.strptime(date_time_str, "%Y-%m-%d %H:%M:%S")
-#        dt = dt.replace(tzinfo=timezone.utc)
-#    except ValueError as e:
-#        raise ValueError(
-#            f"Invalid date format '{date_time_str}'."
-#            f"Expected 'YYYY-MM-DD HH:MM:SS'. Error: {e}"
-#            raise ValueError(f"Cannot convert datetime to timestamp: {e}")
-#        )
-
     # Convert to timestamp
     try:
         ts = local_dt.timestamp()
@@ -129,7 +116,8 @@ Raises:
 def write_exif(
         file_path: Path,
         date_time_str: str,
-        lat: str, lon: str
+        lat: str, lon: str,
+        exiftool_path: str
 ) -> None:
 
     if isinstance(file_path, str):
@@ -153,11 +141,6 @@ def write_exif(
 
     if ext == '.jpeg':
         ext = 'jpg'
-
-    try:
-        exiftool_path = find_dependency("exiftool")
-    except DependencyError:
-        raise
 
     try:
         lat_f = float(lat)
