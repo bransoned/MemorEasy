@@ -6,10 +6,7 @@ from .metadata import (
     write_exif,
 )
 from .exceptions import (
-    ZipExtractionError,
     DownloadError,
-    VideoProcessingError,
-    ImageProcessingError,
     DependencyError
 )
 from .dependencies import find_dependency
@@ -24,7 +21,8 @@ def parse_filename_datetime(filename: str) -> datetime.datetime:
 
     path = "memories/" + filename
     timestamp = os.path.getmtime(path)
-    datestamp = datetime.datetime.fromtimestamp(timestamp, tz=datetime.timezone.utc)
+    datestamp = datetime.datetime.fromtimestamp(timestamp,
+                                                tz=datetime.timezone.utc)
 
     return datestamp.replace(tzinfo=datetime.timezone.utc)
 
@@ -130,7 +128,10 @@ def scan_memories(
 
             # Combine found MP4 with overlay
             if ext == ".mp4" and overlay_file is not None:
-                combined_path = merge_mp4_with_overlay(file_path, overlay_file, ffmpeg_path)
+                combined_path = merge_mp4_with_overlay(
+                                    file_path,
+                                    overlay_file,
+                                    ffmpeg_path)
                 write_exif(combined_path, date_str, lat, lon, exiftool_path)
 
             # Combine found JPG with overlay

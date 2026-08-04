@@ -1,5 +1,5 @@
 from datetime import datetime, timezone
-from .exceptions import DependencyError, MemorEasyError
+from .exceptions import MemorEasyError
 from pathlib import Path
 import subprocess
 import os
@@ -15,6 +15,7 @@ tf = TimezoneFinder()
 Convert UTC datetime string to timezone-aware local datetime
 using GPS coordinates.
 """
+
 
 def utc_str_to_local_dt(
     utc_str: str,
@@ -35,10 +36,12 @@ def utc_str_to_local_dt(
 
 # =========================================================================== #
 
+
 """
 Return EXIF offset string like '+05:30' or '-04:00'
 from a timezone-aware datetime.
 """
+
 
 def offset_str_from_dt(dt: datetime) -> str:
     offset = dt.utcoffset()
@@ -51,6 +54,7 @@ def offset_str_from_dt(dt: datetime) -> str:
     return f"{sign}{hours:02d}:{minutes:02d}"
 
 # =========================================================================== #
+
 
 """
 Change the "modified date" in EXIF section to "created date" value

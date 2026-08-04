@@ -1,7 +1,6 @@
 from .exceptions import (
     ImageProcessingError,
     VideoProcessingError,
-    DependencyError
 )
 from pathlib import Path
 from PIL import Image
@@ -196,7 +195,10 @@ Raises:
 """
 
 
-def merge_mp4_with_overlay(mp4_path: Path, png_path: Path, ffmpeg_path: str) -> Path:
+def merge_mp4_with_overlay(
+        mp4_path: Path,
+        png_path: Path,
+        ffmpeg_path: str) -> Path:
 
     # Validate inputs are Path objects
     if isinstance(mp4_path, str):
@@ -234,17 +236,17 @@ def merge_mp4_with_overlay(mp4_path: Path, png_path: Path, ffmpeg_path: str) -> 
 
     cmd = [
         ffmpeg_path,
-        "-i", str(mp4_path),     # Input video
-        "-i", str(png_path),     # Input overlay
+        "-i", str(mp4_path),  # Input video
+        "-i", str(png_path),  # Input overlay
 
-        "-filter_complex",
-        "[1:v][0:v]scale2ref=w=iw:h=ih[ovr][vid];[vid][ovr]overlay=0:0", ## # Overlay at position 0,0
+        "-filter_complex",    # Combing vid/img and overlay png on vid
+        "[1:v][0:v]scale2ref=w=iw:h=ih[ovr][vid];[vid][ovr]overlay=0:0",
 
-        "-c:v", "libx264",
+        "-c:v", "libx264",    # Reendode video to x264
         "-preset", "veryfast",
         "-c:a", "copy",       # Copy audio without re-encoding
 
-        "-y",                     # Overwrite output file
+        "-y",                 # Overwrite output file
         str(combined_path)
     ]
 
