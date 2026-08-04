@@ -10,18 +10,19 @@ from timezonefinder import TimezoneFinder
 
 # =========================================================================== #
 
+tf = TimezoneFinder()
+
 """
 Convert UTC datetime string to timezone-aware local datetime
 using GPS coordinates.
 """
+
 def utc_str_to_local_dt(
     utc_str: str,
     lat: float,
     lon: float,
     fmt: str = "%Y-%m-%d %H:%M:%S",
 ) -> datetime:
-
-    tf = TimezoneFinder()
 
     utc_dt = datetime.strptime(utc_str, fmt).replace(tzinfo=timezone.utc)
 
