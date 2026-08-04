@@ -1,4 +1,3 @@
-from .dependencies import find_dependency
 from .exceptions import (
     ImageProcessingError,
     VideoProcessingError,
@@ -197,7 +196,7 @@ Raises:
 """
 
 
-def merge_mp4_with_overlay(mp4_path: Path, png_path: Path) -> Path:
+def merge_mp4_with_overlay(mp4_path: Path, png_path: Path, ffmpeg_path: str) -> Path:
 
     # Validate inputs are Path objects
     if isinstance(mp4_path, str):
@@ -233,13 +232,6 @@ def merge_mp4_with_overlay(mp4_path: Path, png_path: Path) -> Path:
         )
         return combined_path
 
-    # Find ffmpeg dependency
-    try:
-        ffmpeg_path = find_dependency("ffmpeg")
-    except DependencyError:
-        raise  # Re-raise to be handled by caller
-
-    # should a try go here?
     cmd = [
         ffmpeg_path,
         "-i", str(mp4_path),     # Input video
