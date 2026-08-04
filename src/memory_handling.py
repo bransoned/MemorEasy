@@ -12,6 +12,7 @@ from .exceptions import (
     ImageProcessingError,
     DependencyError
 )
+from .dependencies import find_dependency
 from pathlib import Path
 import os
 import datetime
@@ -72,6 +73,18 @@ def scan_memories(
     total_files = len(main_files)
     total_memories = len(memories)
 
+    # Find ffmpeg dependency
+    try:
+        ffmpeg_path = find_dependency("ffmpeg")
+    except DependencyError:
+        raise  # Re-raise to be handled by caller
+
+    # Find exiftool dependency
+    try:
+        exiftool_path = find_dependency("exiftool")
+    except DependencyError:
+        raise
+
     while file_idx < total_files and mem_idx < total_memories:
         file_path = main_files[file_idx]
         current_memory = memories[mem_idx]
@@ -107,7 +120,7 @@ def scan_memories(
                      )
                 continue
 
-            write_exif(file_path, date_str, lat, lon)
+            write_exif(file_path, date_str, lat, lon, exiftool_path)
 
             # Check if there is an overlay image for corresponding main
             key = file_path.stem.replace("-main", "")
@@ -117,13 +130,13 @@ def scan_memories(
 
             # Combine found MP4 with overlay
             if ext == ".mp4" and overlay_file is not None:
-                combined_path = merge_mp4_with_overlay(file_path, overlay_file)
-                write_exif(combined_path, date_str, lat, lon)
+                combined_path = merge_mp4_with_overlay(file_path, overlay_file, ffmpeg_path)
+                write_exif(combined_path, date_str, lat, lon, exiftool_path)
 
             # Combine found JPG with overlay
             if ext == ".jpg" and overlay_file is not None:
                 combined_path = merge_jpg_with_overlay(file_path, overlay_file)
-                write_exif(combined_path, date_str, lat, lon)
+                write_exif(combined_path, date_str, lat, lon, exiftool_path)
 
             file_idx += 1
             mem_idx += 1
