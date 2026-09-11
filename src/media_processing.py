@@ -1,9 +1,6 @@
-from moviepy import VideoFileClip
-from .dependencies import find_dependency
 from .exceptions import (
     ImageProcessingError,
     VideoProcessingError,
-    DependencyError
 )
 from pathlib import Path
 from PIL import Image
@@ -109,7 +106,7 @@ def merge_jpg_with_overlay(
         # Resize overlay if dimensions do not match
         if base_jpg.size != overlay.size:
             try:
-                overlay = overlay.resize(base_jpg.size, Image.LANCZOS)
+                overlay = overlay.resize(base_jpg.size, Image.BICUBIC)
             except Exception as e:
                 raise ImageProcessingError(
                     f"Failed to resize overlay from "
@@ -133,9 +130,9 @@ def merge_jpg_with_overlay(
             )
         # Save combined image
         try:
-            combined.save(combined_path, "JPEG", quality=95)
+            combined.save(combined_path, "JPEG", quality=90, optimize=False)
         except Exception as e:
-            ImageProcessingError(
+            raise ImageProcessingError(
                 f"Failed to save combined image {combined_path}: {e}"
             )
 
@@ -198,7 +195,10 @@ Raises:
 """
 
 
-def merge_mp4_with_overlay(mp4_path: Path, png_path: Path) -> Path:
+def merge_mp4_with_overlay(
+        mp4_path: Path,
+        png_path: Path,
+        ffmpeg_path: str) -> Path:
 
     # Validate inputs are Path objects
     if isinstance(mp4_path, str):
@@ -234,112 +234,61 @@ def merge_mp4_with_overlay(mp4_path: Path, png_path: Path) -> Path:
         )
         return combined_path
 
-    # Find ffmpeg dependency
+    cmd = [
+        ffmpeg_path,
+        "-i", str(mp4_path),  # Input video
+        "-i", str(png_path),  # Input overlay
+
+        "-filter_complex",    # Combing vid/img and overlay png on vid
+        "[1:v][0:v]scale2ref=w=iw:h=ih[ovr][vid];[vid][ovr]overlay=0:0",
+
+        "-c:v", "libx264",    # Reendode video to x264
+        "-preset", "veryfast",
+        "-c:a", "copy",       # Copy audio without re-encoding
+
+        "-y",                 # Overwrite output file
+        str(combined_path)
+    ]
+
     try:
-        ffmpeg_path = find_dependency("ffmpeg")
-    except DependencyError:
-        raise  # Re-raise to be handled by caller
-
-    video = None
-    overlay = None
-
-    try:
-        # Get MP4 dimensions using moviepy
-        try:
-            video = VideoFileClip(mp4_path)
-            video_width, video_height = video.size
-
-            if video_width <= 0 or video_height <= 0:
-                raise VideoProcessingError(
-                    f"Invalid video dimensions: {video_width}x{video_height}"
-                )
-        except Exception as e:
-            raise VideoProcessingError(
-                f"Failed to read video dimensions from {mp4_path.name}: {e}."
-            )
-        finally:
-            if video:
-                try:
-                    video.close()
-                except Exception:
-                    pass
-
-        # Resize png file to mp4 dimensions
-        try:
-            overlay = Image.open(png_path)
-            overlay = overlay.resize(
-                (video_width, video_height),
-                Image.LANCZOS
-            )
-            overlay.save(png_path, "PNG")
-        except Exception as e:
-            raise VideoProcessingError(
-                "Failed to resize PNG overlay to "
-                f"{video_width}x{video_height}: {e}"
-            )
-        finally:
-            if overlay:
-                try:
-                    overlay.close()
-                except Exception:
-                    pass
-
-        cmd = [
-            ffmpeg_path,
-            "-i", mp4_path,     # Input video
-
-            "-i", png_path,     # Input overlay
-            "-filter_complex",
-            "[0:v][1:v]overlay=0:0",  # Overlay at position 0,0
-            "-codec:a", "copy",       # Copy audio without re-encoding
-            "-y",                     # Overwrite output file
-            str(combined_path)
-        ]
-
-        try:
-            result = subprocess.run(
-                cmd, capture_output=True, text=True, timeout=300
-            )
-            if result.returncode != 0:
-                raise VideoProcessingError(
-                    f"FFmpeg failed for {mp4_path.name}: {result.stderr}"
-                )
-        except subprocess.TimeoutExpired:
-            raise VideoProcessingError(
-                f"FFmpeg timed out processing "
-                f"{mp4_path.name} (exceeded 5 minutes)"
-            )
-        except Exception as e:
-            raise VideoProcessingError(f"FFmpeg error: {e}")
-
-        # Verify file was created
-        if not combined_path.exists():
-            raise VideoProcessingError(
-                "Combined video was not created"
-            )
-
-        # Verify output file not empty
-        if combined_path.stat().st_size == 0:
-            combined_path.unlink()
-            raise VideoProcessingError("Combined video is empty")
-
-        try:
-            os.remove(png_path)
-        except OSError as e:
-            print(
-                f"Warning: Could not delete overlay PNG "
-                f"{png_path.name}: {e}"
-            )
-
-        return combined_path
-
-    except VideoProcessingError:
-        # Re-raise our custom errors
-        raise
-    except Exception as e:
-        # Catch any unexpected errors
-        raise VideoProcessingError(
-            f"Unexpected error merging video with overlay: {e}"
+        result = subprocess.run(
+            cmd,
+            stdout=subprocess.DEVNULL,
+            stderr=subprocess.PIPE,
+            text=True,
+            timeout=300
         )
+        if result.returncode != 0:
+            raise VideoProcessingError(
+                f"FFmpeg failed for {mp4_path.name}: {result.stderr}"
+            )
+    except subprocess.TimeoutExpired:
+        raise VideoProcessingError(
+            f"FFmpeg timed out processing "
+            f"{mp4_path.name} (exceeded 5 minutes)"
+        )
+    except Exception as e:
+        raise VideoProcessingError(f"FFmpeg error: {e}")
+
+    # Verify file was created
+    if not combined_path.exists():
+        raise VideoProcessingError(
+            "Combined video was not created"
+        )
+
+    # Verify output file not empty
+    if combined_path.stat().st_size == 0:
+        combined_path.unlink()
+        raise VideoProcessingError("Combined video is empty")
+
+    try:
+        os.remove(png_path)
+    except OSError as e:
+        print(
+            f"Warning: Could not delete overlay PNG "
+            f"{png_path.name}: {e}"
+        )
+
+    return combined_path
 
 # =========================================================================== #

@@ -1,6 +1,5 @@
 from datetime import datetime, timezone
-from .dependencies import find_dependency
-from .exceptions import DependencyError, MemorEasyError
+from .exceptions import MemorEasyError
 from pathlib import Path
 import subprocess
 import os
@@ -10,18 +9,20 @@ from timezonefinder import TimezoneFinder
 
 # =========================================================================== #
 
+tf = TimezoneFinder()
+
 """
 Convert UTC datetime string to timezone-aware local datetime
 using GPS coordinates.
 """
+
+
 def utc_str_to_local_dt(
     utc_str: str,
     lat: float,
     lon: float,
     fmt: str = "%Y-%m-%d %H:%M:%S",
 ) -> datetime:
-
-    tf = TimezoneFinder()
 
     utc_dt = datetime.strptime(utc_str, fmt).replace(tzinfo=timezone.utc)
 
@@ -35,10 +36,12 @@ def utc_str_to_local_dt(
 
 # =========================================================================== #
 
+
 """
 Return EXIF offset string like '+05:30' or '-04:00'
 from a timezone-aware datetime.
 """
+
 
 def offset_str_from_dt(dt: datetime) -> str:
     offset = dt.utcoffset()
@@ -51,6 +54,7 @@ def offset_str_from_dt(dt: datetime) -> str:
     return f"{sign}{hours:02d}:{minutes:02d}"
 
 # =========================================================================== #
+
 
 """
 Change the "modified date" in EXIF section to "created date" value
@@ -77,18 +81,6 @@ def set_file_timestamp(path, local_dt) -> None:
 
     if local_dt.tzinfo is None:
         raise ValueError("local_dt must be timezone-aware")
-
-    # Validate and parse date string
-#    try:
-#        ts = local_dt.timestamp()
-#        dt = datetime.strptime(date_time_str, "%Y-%m-%d %H:%M:%S")
-#        dt = dt.replace(tzinfo=timezone.utc)
-#    except ValueError as e:
-#        raise ValueError(
-#            f"Invalid date format '{date_time_str}'."
-#            f"Expected 'YYYY-MM-DD HH:MM:SS'. Error: {e}"
-#            raise ValueError(f"Cannot convert datetime to timestamp: {e}")
-#        )
 
     # Convert to timestamp
     try:
@@ -128,7 +120,8 @@ Raises:
 def write_exif(
         file_path: Path,
         date_time_str: str,
-        lat: str, lon: str
+        lat: str, lon: str,
+        exiftool_path: str
 ) -> None:
 
     if isinstance(file_path, str):
@@ -152,11 +145,6 @@ def write_exif(
 
     if ext == '.jpeg':
         ext = 'jpg'
-
-    try:
-        exiftool_path = find_dependency("exiftool")
-    except DependencyError:
-        raise
 
     try:
         lat_f = float(lat)

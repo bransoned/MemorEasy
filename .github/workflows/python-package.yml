@@ -149,10 +149,7 @@ jobs:
         shell: bash
         run: |
           COMMON_ARGS="--onefile \
-            --name MemorEasy \
-            --copy-metadata imageio \
-            --copy-metadata imageio-ffmpeg \
-            --copy-metadata moviepy"
+            --name MemorEasy"
 
             if [[ "$RUNNER_OS" == "Windows" ]]; then
               BIN_ARGS="\
