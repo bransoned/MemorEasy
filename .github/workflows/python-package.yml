@@ -149,7 +149,7 @@ jobs:
         shell: bash
         run: |
           COMMON_ARGS="--onefile \
-            --name MemorEasy \
+            --name MemorEasy"
 
             if [[ "$RUNNER_OS" == "Windows" ]]; then
               BIN_ARGS="\
